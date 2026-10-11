@@ -1,0 +1,21 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+dist/
+build/
+
+# run cache (raw responses are kept in results/raw; the sqlite cache is local)
+results/cache.sqlite*
+
+.DS_Store
+
+# run logs
+results/*.log

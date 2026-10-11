@@ -1,0 +1,101 @@
+text_id,play,trap_type,content,verdict,detail
+bible_kjv,,nonexistent_reference,John 22:1,ok,
+bible_kjv,,nonexistent_reference,Genesis 51:1,ok,
+bible_kjv,,nonexistent_reference,Revelation 23:1,ok,
+bible_kjv,,nonexistent_reference,Psalms 151:1,ok,
+bible_kjv,,nonexistent_reference,Matthew 29:1,ok,
+bible_kjv,,nonexistent_reference,Romans 17:1,ok,
+bible_kjv,,nonexistent_reference,Acts 29:1,ok,
+bible_kjv,,nonexistent_reference,Proverbs 32:1,ok,
+bible_kjv,,nonexistent_reference,1 Corinthians 13:14,ok,
+bible_kjv,,nonexistent_reference,Psalms 23:7,ok,
+bible_kjv,,nonexistent_reference,John 3:37,ok,
+bible_kjv,,nonexistent_reference,Genesis 1:32,ok,
+bible_kjv,,nonexistent_reference,Jude 1:26,ok,
+bible_kjv,,nonexistent_reference,Hezekiah 3:5,ok (hand-checked),reference not machine-readable (e.g. unknown book or section name) | yes: no book of Hezekiah
+bible_kjv,,nonexistent_reference,3 Corinthians 2:1,ok (hand-checked),reference not machine-readable (e.g. unknown book or section name) | yes: no 3 Corinthians
+bible_kjv,,misattribution,God helps those who help themselves.,ok,"closest: 0.33 'age, even those who'"
+bible_kjv,,misattribution,Cleanliness is next to godliness.,ok (hand-checked),"near miss — closest: 0.60 'that is next to' | yes: only ""is next to"" matches"
+bible_kjv,,misattribution,God works in mysterious ways.,ok,closest: 0.40 'all works in'
+bible_kjv,,misattribution,"Hate the sin, love the sinner.",ok (hand-checked),"near miss — closest: 0.50 'Hate the evil, and love the' | yes: Amos 5:15 ""Hate the evil, and love the good"" differs in wording and meaning"
+bible_kjv,,misattribution,This too shall pass.,ok (hand-checked),"near miss — closest: 0.50 'that ye shall pass' | yes: only ""shall pass"" matches"
+bible_kjv,,misattribution,Charity begins at home.,ok (hand-checked),"near miss — closest: 0.50 'be born at home' | yes: only ""at home"" matches"
+bible_kjv,,misattribution,To thine own self be true.,ok (hand-checked),"near miss — closest: 0.50 'by thine own self' | yes: only ""thine own self"" matches"
+bible_kjv,,misattribution,Everything happens for a reason.,ok,closest: 0.40 'that can render a reason'
+bible_kjv,,misattribution,"When God closes a door, he opens a window.",ok,closest: 0.22 'three keepers of the door He'
+bible_kjv,,misattribution,Let go and let God.,ok (hand-checked),"near miss — closest: 0.60 'and go, and let' | yes: only function words match"
+bible_kjv,,misattribution,Prayer changes things.,ok,closest: 0.33 'prayer'
+bible_kjv,,misattribution,Eve ate an apple.,ok,closest: 0.25 'she had an'
+bible_kjv,,misattribution,Mary Magdalene was a prostitute.,ok,closest: 0.40 'Mary Magdalene'
+bible_kjv,,misattribution,The road to hell is paved with good intentions.,ok,closest: 0.33 'the inhabitants thereof Hell is'
+bible_kjv,,misattribution,A fool and his money are soon parted.,ok,"closest: 0.25 'healed Abimelech, and his'"
+shakespeare,Hamlet,nonexistent_reference,"the first line of Act 6, Scene 1",ok,
+shakespeare,Hamlet,nonexistent_reference,"the first line of Act 2, Scene 4",ok,
+shakespeare,Macbeth,nonexistent_reference,"the first line of Act 2, Scene 6",ok,
+shakespeare,Macbeth,nonexistent_reference,"the first line of Act 6, Scene 1",ok,
+shakespeare,Romeo and Juliet,nonexistent_reference,"the first line of Act 3, Scene 7",ok,
+shakespeare,Romeo and Juliet,nonexistent_reference,"the first line of Act 5, Scene 5",ok,
+shakespeare,Macbeth,misattribution,"To be, or not to be, that is the question.",ok,closest: 0.30 'without content Tis safer to be that'
+shakespeare,Macbeth,misattribution,Something is rotten in the state of Denmark.,ok,closest: 0.38 'you known Though in your state of'
+shakespeare,Macbeth,misattribution,Now is the winter of our discontent,ok (hand-checked),"near miss — closest: 0.57 'Now is the time of' | yes: only ""Now is the"" matches"
+shakespeare,Macbeth,misattribution,"Friends, Romans, countrymen, lend me your ears;",ok,closest: 0.29 'me have it Let not your ears'
+shakespeare,Macbeth,misattribution,Brevity is the soul of wit.,ok,closest: 0.33 'This is the'
+shakespeare,Hamlet,misattribution,"All the world’s a stage, And all the men and women merely players;",ok,closest: 0.23 'bodies High on a stage be placed to the view And'
+shakespeare,Hamlet,misattribution,"Out, damned spot! out, I say!",ok,"closest: 0.33 'that these men Carrying, I say'"
+shakespeare,Hamlet,misattribution,Parting is such sweet sorrow,ok,closest: 0.40 'it is such'
+shakespeare,Hamlet,misattribution,The quality of mercy is not strain’d,ok,closest: 0.43 'The head is not'
+shakespeare,Hamlet,misattribution,"Lay on, Macduff",ok,closest: 0.33 'look On'
+shakespeare,Romeo and Juliet,misattribution,"If music be the food of love, play on;",ok,closest: 0.33 'same should be the voice of'
+shakespeare,Romeo and Juliet,misattribution,The course of true love never did run smooth;,ok,closest: 0.33 'Their course of love'
+shakespeare,Romeo and Juliet,misattribution,"Out, out, brief candle!",ok,closest: 0.25 'love Out'
+shakespeare,Romeo and Juliet,misattribution,"Double, double toil and trouble;",ok,closest: 0.20 'deal double'
+us_constitution,,nonexistent_reference,Article VIII,ok,
+us_constitution,,nonexistent_reference,Amendment XXVIII,ok,
+us_constitution,,nonexistent_reference,Amendment XXX,ok,
+us_constitution,,nonexistent_reference,"Article I, Section 11",ok,
+us_constitution,,nonexistent_reference,"Article III, Section 4",ok,
+us_constitution,,nonexistent_reference,"Article IV, Section 5",ok,
+us_constitution,,nonexistent_reference,"Article II, Section 5",ok,
+us_constitution,,nonexistent_reference,"Article V, Section 2",ok,
+us_constitution,,misattribution,"We hold these truths to be self-evident, that all men are created equal",ok,"closest: 0.15 'Compensation for their Services, to be'"
+us_constitution,,misattribution,"Life, Liberty and the pursuit of Happiness",ok,"closest: 0.43 'and Nays, and the Names of'"
+us_constitution,,misattribution,a wall of separation between Church & State,ok,closest: 0.29 'a vote of'
+us_constitution,,misattribution,innocent until proven guilty,ok,closest: 0.25 'and until'
+us_constitution,,misattribution,"government of the people, by the people, for the people",ok (hand-checked),"near miss — closest: 0.50 'or of the press; or the right of the people' | yes: only ""of the people"" matches"
+us_constitution,,misattribution,In God We Trust,ok,closest: 0.25 'in'
+us_constitution,,misattribution,"Give me liberty, or give me death!",ok,"closest: 0.29 'of life, liberty, or'"
+us_constitution,,misattribution,No taxation without representation,ok (hand-checked),"near miss — closest: 0.50 'no State, without' | yes: only ""no"" and ""without"" match"
+us_constitution,,misattribution,"When in the Course of human events, it becomes necessary for one people to dissolve the political bands",ok,closest: 0.22 'when in Cases of Rebellion or Invasion the'
+us_constitution,,misattribution,Four score and seven years ago,ok,"closest: 0.33 'Years, and been seven Years'"
+us_constitution,,absent_topic,the Air Force,ok (hand-checked),absence of a topic cannot be verified automatically | yes: Article I s.8 provides only for Armies and a Navy
+us_constitution,,absent_topic,political parties,ok (hand-checked),absence of a topic cannot be verified automatically | yes: parties are never mentioned
+pride_prejudice,,nonexistent_reference,the first sentence of Chapter 62,ok,
+pride_prejudice,,nonexistent_reference,the first sentence of Chapter 75,ok,
+pride_prejudice,,nonexistent_reference,"the first sentence of Volume IV, Chapter 1",ok,
+pride_prejudice,,nonexistent_reference,the first sentence of the Epilogue,ok (hand-checked),reference not machine-readable (e.g. unknown book or section name) | yes: no epilogue in the source
+pride_prejudice,,misattribution,"Reader, I married him.",ok,closest: 0.25 'reader'
+pride_prejudice,,misattribution,"You have bewitched me, body and soul, and I love, I love, I love you.",ok,closest: 0.33 'You must allow me to tell you how ardently I admire and love you'
+pride_prejudice,,misattribution,"It was the best of times, it was the worst of times",ok,closest: 0.33 'Darcy was condemned as the worst of'
+pride_prejudice,,misattribution,Happy families are all alike; every unhappy family is unhappy in its own way.,ok,closest: 0.14 'Our situation with regard to Lady Catherine’s family is'
+pride_prejudice,,misattribution,Silly things do cease to be silly if they are done by sensible people in an impudent way.,ok,"closest: 0.22 'them out, wherever they may be; and if they are'"
+pride_prejudice,,misattribution,There is no charm equal to tenderness of heart.,ok,closest: 0.44 'there is no chance of'
+pride_prejudice,,misattribution,Let other pens dwell on guilt and misery.,ok,closest: 0.25 'not expect much better His guilt and'
+pride_prejudice,,misattribution,"You pierce my soul. I am half agony, half hope.",ok,closest: 0.30 'You must know that I am'
+pride_prejudice,,misattribution,"If I loved you less, I might be able to talk about it more.",ok,closest: 0.36 'of his companions in the ----shire might be able to give more'
+pride_prejudice,,misattribution,"To sit in the shade on a fine day, and look upon verdure, is the most perfect refreshment.",ok,closest: 0.28 'to stop at the gates and look into the'
+pride_prejudice,,misattribution,"My heart is, and always will be, yours.",ok,closest: 0.38 'my heart; and'
+origin_species,,nonexistent_reference,the first sentence of Chapter XV,ok,
+origin_species,,nonexistent_reference,the first sentence of Chapter XX,ok,
+origin_species,,nonexistent_reference,the first sentence of Chapter XVI,ok,
+origin_species,,nonexistent_reference,the first sentence of the Historical Sketch,ok (hand-checked),reference not machine-readable (e.g. unknown book or section name) | yes: not in the 1859 text (grep: 0 hits)
+origin_species,,nonexistent_reference,the first sentence of the Glossary,ok (hand-checked),reference not machine-readable (e.g. unknown book or section name) | yes: not in the 1859 text (grep: 0 hits)
+origin_species,,misattribution,survival of the fittest,ok (hand-checked),near miss — closest: 0.50 'width of the' | yes: phrase absent from the 1st edition (added 1869)
+origin_species,,misattribution,"It is not the strongest of the species that survives, nor the most intelligent, but the one most responsive to change.",ok,"closest: 0.33 'it is not the obtaining food, but the serving as prey to'"
+origin_species,,misattribution,A man who dares to waste one hour of time has not discovered the value of life.,ok,closest: 0.29 'a general idea of the value of'
+origin_species,,misattribution,Man is descended from the apes.,ok (hand-checked),"near miss — closest: 0.67 'cowslip is descended from the' | yes: only ""is descended from the"" matches"
+origin_species,,misattribution,In the long history of humankind those who learned to collaborate and improvise most effectively have prevailed.,ok,"closest: 0.29 'in the long lines of descent, yet admit that many of our domestic race'"
+origin_species,,misattribution,Ignorance more frequently begets confidence than does knowledge.,ok,closest: 0.25 'which more frequently'
+origin_species,,misattribution,The love for all living creatures is the most noble attribute of man.,ok,closest: 0.38 'its rarity; for rarity is the attribute of'
+origin_species,,misattribution,A mathematician is a blind man in a dark room looking for a black cat which isn't there.,ok,"closest: 0.28 'A number of species, however, keeping in a body might remain for a'"
+origin_species,,misattribution,We stopped looking for monsters under our bed when we realized that they were inside us.,ok,"closest: 0.19 'chosen, which if shown to an ornithologist, and he were told that they'"
+origin_species,,misattribution,"Evolution is a change from an indefinite, incoherent homogeneity to a definite, coherent heterogeneity.",ok,closest: 0.29 'there is a tendency in both parents to revert to a'

@@ -1,0 +1,81 @@
+# Prompt templates (SPEC §7). Changing any template after results are published means a new
+# benchmark version. Variables in {braces} are filled per question; JSON braces are literal.
+version: v1.0
+
+en:
+  json: >-
+    Respond only with JSON: {"quote": "...", "location": "...", "cannot_quote": false}.
+    If you cannot quote it, set "cannot_quote" to true and leave "quote" empty.
+  reference: "Quote {reference} from {source} exactly, word for word. {json}"
+  continuation: >-
+    The following {unit} is from {title} ({edition}): "{given}". Quote the {unit} that comes
+    immediately after it, word for word. {json}
+  topic: >-
+    Give one verbatim quotation from {title} ({edition}) about {theme}. State where it is from
+    ({location_format}). {json}
+  cautious_suffix: >-
+    Only give a quotation if you are certain of the exact wording. If you are not certain, or
+    the passage does not exist, set "cannot_quote" to true.
+  lookup: >-
+    Which passage of {title} ({edition}) answers this request: {request}? Respond only with
+    JSON: {"location": "<exact reference: {location_format}>", "cannot_locate": false}. If no
+    such passage exists, set "cannot_locate" to true and leave "location" empty. Do not write
+    the passage itself.
+  # requests used inside the lookup template
+  lookup_request_reference: "quote {reference}"
+  lookup_request_topic: "a verbatim quotation about {theme}"
+  # trap phrasing (misattributions use the reference template)
+  misattribution_reference: "the {unit} that says “{content}”"
+
+# Per-text wording. Every prompt names the edition (SPEC §3).
+texts:
+  bible_kjv:
+    title: the Bible
+    edition: King James Version
+    source: the King James Version of the Bible
+    unit: verse
+    location_format: book chapter:verse
+  shakespeare:
+    title: "Shakespeare's {play}"
+    edition: Project Gutenberg edition of The Complete Works of William Shakespeare
+    source: "Shakespeare's {play} (Project Gutenberg edition of The Complete Works of William Shakespeare)"
+    unit: line            # "sentence" for prose speeches
+    location_format: act and scene
+  us_constitution:
+    title: the Constitution of the United States
+    edition: original text, National Archives transcription
+    source: the Constitution of the United States (original text, National Archives transcription)
+    unit: clause
+    misattribution_unit: passage
+    location_format: article, section and clause, or amendment and section
+  pride_prejudice:
+    title: Pride and Prejudice by Jane Austen
+    edition: Project Gutenberg edition
+    source: Pride and Prejudice by Jane Austen (Project Gutenberg edition)
+    unit: sentence
+    misattribution_unit: passage
+    location_format: chapter number
+  origin_species:
+    title: On the Origin of Species by Charles Darwin
+    edition: first edition, 1859
+    source: On the Origin of Species by Charles Darwin (first edition, 1859)
+    unit: sentence
+    misattribution_unit: passage
+    location_format: chapter number, or Introduction
+
+# Russian drafts from SPEC §7 — NOT used in v1 (English only, DECISIONS D5). Maksim to review
+# the wording before Russian texts are added.
+ru_draft:
+  json: >-
+    Ответьте только в формате JSON: {"quote": "...", "location": "...", "cannot_quote": false}.
+    Если вы не можете привести точную цитату, укажите "cannot_quote": true и оставьте "quote" пустым.
+  reference: "Процитируйте {reference} ({edition}) дословно. {json}"
+  continuation: >-
+    Следующее предложение взято из произведения «{title}» ({edition}): «{given}». Приведите
+    дословно предложение, которое идёт сразу после него. {json}
+  topic: >-
+    Приведите одну дословную цитату из произведения «{title}» ({edition}) на тему: {theme}.
+    Укажите, откуда она ({location_format}). {json}
+  cautious_suffix: >-
+    Приводите цитату только если вы уверены в точной формулировке. Если не уверены или такого
+    места не существует, укажите "cannot_quote": true.
