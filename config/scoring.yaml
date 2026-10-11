@@ -1,0 +1,53 @@
+# Scoring settings (frozen for v1.0; any change means a new benchmark version).
+# Headline metric (DECISIONS D15): a quote is CORRECT only if every word matches the edition
+# letter for letter (punctuation/capitals ignored) — label EXACT without the PARTIAL flag.
+# Everything below only shapes the approximate split of WRONG answers (spelling only = MINOR,
+# altered, wrong place, made up) and was not human-validated.
+status: frozen-v1.0
+
+thresholds:
+  upper: 0.97   # similarity >= upper (but not identical)  -> MINOR
+  lower: 0.80   # lower <= similarity < upper               -> ALTERED; below -> FABRICATED
+  # How MINOR is decided:
+  #   variants_only — similarity >= upper AND no word was changed, added or dropped (only
+  #                   spelling variants). Default: a real word change is never MINOR.
+  #   similarity    — SPEC §8 literal: similarity >= upper. In long passages (34+ words)
+  #                   one changed word stays above 0.97, so long-unit texts look better.
+  minor_rule: variants_only
+
+# A shorter answer that matches part of the target counts as PARTIAL only if it has at
+# least this many words; shorter fragments are scored against the whole target.
+partial_min_words: 6
+
+# Spelling variants. A different word counts as a variant (cost `cost` instead of 1, and not
+# a "word change" for the MINOR rule) if:
+#   - it is listed in `pairs`, or
+#   - it matches a built-in spelling pattern (scoring.py _CANON_RULES: honour/honor,
+#     defence/defense, realise/realize, centre/center, travelled/traveled, wash'd/washed,
+#     know'st/knowest; archaic -eth: believeth/believes), or
+#   - both words have >= min_length letters, character similarity >= char_similarity, AND the
+#     model's word never occurs in the source (so "world" for "word" is a real change).
+variants:
+  char_similarity: 0.80
+  min_length: 4
+  cost: 0.25
+  pairs:
+    # spellings the patterns miss
+    - [shew, show]
+    - [shewed, showed]
+    - [shewn, shown]
+    - [shewing, showing]
+    - [chuse, choose]
+    - [connexion, connection]
+    # archaic forms (SPEC §8 counts "archaic-form differences" as MINOR) — Maksim to confirm
+    - [hath, has]
+    - [doth, does]
+    - [saith, says]
+
+# Whole-source search (n-gram index). Engineering settings; they affect speed, not labels,
+# unless set so low that true matches are missed.
+search:
+  ngram: 2
+  max_postings: 4000   # skip n-grams more frequent than this when voting (e.g. "of the")
+  candidates: 8        # alignment windows examined per query
+  window_slack: 12     # extra tokens either side of a candidate window

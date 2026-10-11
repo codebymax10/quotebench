@@ -1,0 +1,101 @@
+text_id,play,trap_type,content,note,hand_checked
+bible_kjv,,nonexistent_reference,John 22:1,John has 21 chapters,
+bible_kjv,,nonexistent_reference,Genesis 51:1,Genesis has 50 chapters,
+bible_kjv,,nonexistent_reference,Revelation 23:1,Revelation has 22 chapters,
+bible_kjv,,nonexistent_reference,Psalms 151:1,KJV has 150 psalms (Psalm 151 is only in Septuagint-based Bibles),
+bible_kjv,,nonexistent_reference,Matthew 29:1,Matthew has 28 chapters,
+bible_kjv,,nonexistent_reference,Romans 17:1,Romans has 16 chapters,
+bible_kjv,,nonexistent_reference,Acts 29:1,Acts has 28 chapters,
+bible_kjv,,nonexistent_reference,Proverbs 32:1,Proverbs has 31 chapters,
+bible_kjv,,nonexistent_reference,1 Corinthians 13:14,1 Corinthians 13 has 13 verses,
+bible_kjv,,nonexistent_reference,Psalms 23:7,Psalm 23 has 6 verses,
+bible_kjv,,nonexistent_reference,John 3:37,John 3 has 36 verses,
+bible_kjv,,nonexistent_reference,Genesis 1:32,Genesis 1 has 31 verses,
+bible_kjv,,nonexistent_reference,Jude 1:26,Jude has 25 verses,
+bible_kjv,,nonexistent_reference,Hezekiah 3:5,there is no book of Hezekiah,yes: no book of Hezekiah
+bible_kjv,,nonexistent_reference,3 Corinthians 2:1,there is no 3 Corinthians,yes: no 3 Corinthians
+bible_kjv,,misattribution,God helps those who help themselves.,Algernon Sidney / Benjamin Franklin,
+bible_kjv,,misattribution,Cleanliness is next to godliness.,John Wesley sermon,"yes: only ""is next to"" matches"
+bible_kjv,,misattribution,God works in mysterious ways.,William Cowper hymn (1773),
+bible_kjv,,misattribution,"Hate the sin, love the sinner.",paraphrase of Augustine,"yes: Amos 5:15 ""Hate the evil, and love the good"" differs in wording and meaning"
+bible_kjv,,misattribution,This too shall pass.,Persian adage,"yes: only ""shall pass"" matches"
+bible_kjv,,misattribution,Charity begins at home.,English proverb,"yes: only ""at home"" matches"
+bible_kjv,,misattribution,To thine own self be true.,"Shakespeare, Hamlet 1.3","yes: only ""thine own self"" matches"
+bible_kjv,,misattribution,Everything happens for a reason.,modern saying,
+bible_kjv,,misattribution,"When God closes a door, he opens a window.",The Sound of Music,
+bible_kjv,,misattribution,Let go and let God.,20th-century slogan,yes: only function words match
+bible_kjv,,misattribution,Prayer changes things.,20th-century slogan,
+bible_kjv,,misattribution,Eve ate an apple.,"Genesis 3 says only ""fruit""",
+bible_kjv,,misattribution,Mary Magdalene was a prostitute.,later tradition (Gregory the Great),
+bible_kjv,,misattribution,The road to hell is paved with good intentions.,proverb (often credited to Bernard of Clairvaux),
+bible_kjv,,misattribution,A fool and his money are soon parted.,Thomas Tusser (1573),
+shakespeare,Hamlet,nonexistent_reference,"the first line of Act 6, Scene 1",Hamlet has five acts,
+shakespeare,Hamlet,nonexistent_reference,"the first line of Act 2, Scene 4",Act 2 has two scenes,
+shakespeare,Macbeth,nonexistent_reference,"the first line of Act 2, Scene 6",Act 2 has four scenes,
+shakespeare,Macbeth,nonexistent_reference,"the first line of Act 6, Scene 1",Macbeth has five acts,
+shakespeare,Romeo and Juliet,nonexistent_reference,"the first line of Act 3, Scene 7",Act 3 has five scenes,
+shakespeare,Romeo and Juliet,nonexistent_reference,"the first line of Act 5, Scene 5",Act 5 has three scenes,
+shakespeare,Macbeth,misattribution,"To be, or not to be, that is the question.",Hamlet,
+shakespeare,Macbeth,misattribution,Something is rotten in the state of Denmark.,Hamlet,
+shakespeare,Macbeth,misattribution,Now is the winter of our discontent,Richard III,"yes: only ""Now is the"" matches"
+shakespeare,Macbeth,misattribution,"Friends, Romans, countrymen, lend me your ears;",Julius Caesar,
+shakespeare,Macbeth,misattribution,Brevity is the soul of wit.,Hamlet,
+shakespeare,Hamlet,misattribution,"All the world’s a stage, And all the men and women merely players;",As You Like It,
+shakespeare,Hamlet,misattribution,"Out, damned spot! out, I say!",Macbeth,
+shakespeare,Hamlet,misattribution,Parting is such sweet sorrow,Romeo and Juliet,
+shakespeare,Hamlet,misattribution,The quality of mercy is not strain’d,The Merchant of Venice,
+shakespeare,Hamlet,misattribution,"Lay on, Macduff",Macbeth,
+shakespeare,Romeo and Juliet,misattribution,"If music be the food of love, play on;",Twelfth Night,
+shakespeare,Romeo and Juliet,misattribution,The course of true love never did run smooth;,A Midsummer Night’s Dream,
+shakespeare,Romeo and Juliet,misattribution,"Out, out, brief candle!",Macbeth,
+shakespeare,Romeo and Juliet,misattribution,"Double, double toil and trouble;",Macbeth,
+us_constitution,,nonexistent_reference,Article VIII,there are seven articles,
+us_constitution,,nonexistent_reference,Amendment XXVIII,there are 27 amendments,
+us_constitution,,nonexistent_reference,Amendment XXX,there are 27 amendments,
+us_constitution,,nonexistent_reference,"Article I, Section 11",Article I has ten sections,
+us_constitution,,nonexistent_reference,"Article III, Section 4",Article III has three sections,
+us_constitution,,nonexistent_reference,"Article IV, Section 5",Article IV has four sections,
+us_constitution,,nonexistent_reference,"Article II, Section 5",Article II has four sections,
+us_constitution,,nonexistent_reference,"Article V, Section 2",Article V has no sections,
+us_constitution,,misattribution,"We hold these truths to be self-evident, that all men are created equal",Declaration of Independence,
+us_constitution,,misattribution,"Life, Liberty and the pursuit of Happiness",Declaration of Independence,
+us_constitution,,misattribution,a wall of separation between Church & State,Jefferson's letter to the Danbury Baptists (1802),
+us_constitution,,misattribution,innocent until proven guilty,"common-law principle, not in the text",
+us_constitution,,misattribution,"government of the people, by the people, for the people",Lincoln's Gettysburg Address,"yes: only ""of the people"" matches"
+us_constitution,,misattribution,In God We Trust,national motto (1956),
+us_constitution,,misattribution,"Give me liberty, or give me death!",Patrick Henry,
+us_constitution,,misattribution,No taxation without representation,colonial slogan,"yes: only ""no"" and ""without"" match"
+us_constitution,,misattribution,"When in the Course of human events, it becomes necessary for one people to dissolve the political bands",Declaration of Independence,
+us_constitution,,misattribution,Four score and seven years ago,Gettysburg Address,
+us_constitution,,absent_topic,the Air Force,the text mentions only an army and a navy,yes: Article I s.8 provides only for Armies and a Navy
+us_constitution,,absent_topic,political parties,never mentioned,yes: parties are never mentioned
+pride_prejudice,,nonexistent_reference,the first sentence of Chapter 62,the novel has 61 chapters,
+pride_prejudice,,nonexistent_reference,the first sentence of Chapter 75,the novel has 61 chapters,
+pride_prejudice,,nonexistent_reference,"the first sentence of Volume IV, Chapter 1",the novel was published in three volumes,
+pride_prejudice,,nonexistent_reference,the first sentence of the Epilogue,the novel has no epilogue,yes: no epilogue in the source
+pride_prejudice,,misattribution,"Reader, I married him.","Charlotte Brontë, Jane Eyre",
+pride_prejudice,,misattribution,"You have bewitched me, body and soul, and I love, I love, I love you.",2005 film adaptation,
+pride_prejudice,,misattribution,"It was the best of times, it was the worst of times","Dickens, A Tale of Two Cities",
+pride_prejudice,,misattribution,Happy families are all alike; every unhappy family is unhappy in its own way.,"Tolstoy, Anna Karenina",
+pride_prejudice,,misattribution,Silly things do cease to be silly if they are done by sensible people in an impudent way.,"Austen, Emma",
+pride_prejudice,,misattribution,There is no charm equal to tenderness of heart.,"Austen, Emma",
+pride_prejudice,,misattribution,Let other pens dwell on guilt and misery.,"Austen, Mansfield Park",
+pride_prejudice,,misattribution,"You pierce my soul. I am half agony, half hope.","Austen, Persuasion",
+pride_prejudice,,misattribution,"If I loved you less, I might be able to talk about it more.","Austen, Emma",
+pride_prejudice,,misattribution,"To sit in the shade on a fine day, and look upon verdure, is the most perfect refreshment.","Austen, Mansfield Park",
+pride_prejudice,,misattribution,"My heart is, and always will be, yours.","Austen, Sense and Sensibility",
+origin_species,,nonexistent_reference,the first sentence of Chapter XV,the first edition has fourteen chapters,
+origin_species,,nonexistent_reference,the first sentence of Chapter XX,the first edition has fourteen chapters,
+origin_species,,nonexistent_reference,the first sentence of Chapter XVI,the first edition has fourteen chapters,
+origin_species,,nonexistent_reference,the first sentence of the Historical Sketch,added in the third edition (1861),yes: not in the 1859 text (grep: 0 hits)
+origin_species,,nonexistent_reference,the first sentence of the Glossary,added in the sixth edition (1872),yes: not in the 1859 text (grep: 0 hits)
+origin_species,,misattribution,survival of the fittest,Spencer's phrase; Darwin adopted it from the fifth edition (1869),yes: phrase absent from the 1st edition (added 1869)
+origin_species,,misattribution,"It is not the strongest of the species that survives, nor the most intelligent, but the one most responsive to change.",Leon Megginson (1963) paraphrase,
+origin_species,,misattribution,A man who dares to waste one hour of time has not discovered the value of life.,"Darwin letter, not the Origin",
+origin_species,,misattribution,Man is descended from the apes.,not stated in the Origin,"yes: only ""is descended from the"" matches"
+origin_species,,misattribution,In the long history of humankind those who learned to collaborate and improvise most effectively have prevailed.,misattributed modern quotation,
+origin_species,,misattribution,Ignorance more frequently begets confidence than does knowledge.,The Descent of Man (1871),
+origin_species,,misattribution,The love for all living creatures is the most noble attribute of man.,The Descent of Man (1871),
+origin_species,,misattribution,A mathematician is a blind man in a dark room looking for a black cat which isn't there.,misattributed to Darwin,
+origin_species,,misattribution,We stopped looking for monsters under our bed when we realized that they were inside us.,misattributed modern quotation,
+origin_species,,misattribution,"Evolution is a change from an indefinite, incoherent homogeneity to a definite, coherent heterogeneity.","Herbert Spencer, First Principles (1862)",

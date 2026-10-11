@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QuoteBench</title>
+<meta name="description" content="How often do AI language models fabricate or alter verbatim quotations from well-known texts?">
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s1-light: #86b6ef;
+  --warn-bg: #fff4d6; --warn-ink: #5c4300; --hover: rgba(11,11,11,0.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s1-light: #184f95;
+    --warn-bg: #3a2e0a; --warn-ink: #f5d78a; --hover: rgba(255,255,255,0.05);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s1-light: #184f95;
+  --warn-bg: #3a2e0a; --warn-ink: #f5d78a; --hover: rgba(255,255,255,0.05);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1080px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 28px; margin: 0 0 4px; letter-spacing: -0.01em; }
+h2 { font-size: 18px; margin: 0 0 4px; }
+.lede { color: var(--ink2); margin: 0 0 20px; max-width: 70ch; }
+.banner { background: var(--warn-bg); color: var(--warn-ink); border-radius: 10px; padding: 12px 16px;
+  margin: 0 0 20px; font-size: 14px; }
+.banner strong { font-weight: 650; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 0 0 24px; }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.kpi .label { color: var(--ink2); font-size: 13px; }
+.kpi .value { font-size: 26px; font-weight: 600; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px;
+  margin: 0 0 20px; }
+.sub { color: var(--ink2); font-size: 14px; margin: 0 0 12px; }
+.caption { color: var(--muted); font-size: 12.5px; margin: 8px 0 0; }
+.filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0 0 16px; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; padding: 3px; background: var(--surface); }
+.seg button { border: 0; background: transparent; color: var(--ink2); font: inherit; font-size: 14px;
+  padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.seg button:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: right; padding: 9px 10px; border-bottom: 1px solid var(--grid); white-space: nowrap;
+  font-variant-numeric: tabular-nums; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--ink2); font-weight: 600; font-size: 13px; cursor: pointer; user-select: none; }
+th button { all: unset; cursor: pointer; }
+th button:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; border-radius: 4px; }
+th[aria-sort="ascending"] button::after { content: " ▲"; font-size: 10px; }
+th[aria-sort="descending"] button::after { content: " ▼"; font-size: 10px; }
+tbody tr:hover { background: var(--hover); }
+td .ci { color: var(--muted); font-size: 12px; margin-left: 4px; }
+td .id { display: block; color: var(--muted); font-size: 12px; }
+.badge { display: inline-block; font-size: 11px; color: var(--warn-ink); background: var(--warn-bg);
+  border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: 1px; }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--ink2); margin: 0 0 8px; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px;
+  margin-right: 6px; vertical-align: -1px; background: var(--c); }
+.legend .dot::before { border-radius: 50%; }
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+svg text { fill: var(--ink2); font: 12.5px system-ui, -apple-system, "Segoe UI", sans-serif; }
+svg .tick { fill: var(--muted); font-size: 11.5px; }
+svg .mark { cursor: default; }
+svg .mark:focus { outline: none; }
+svg .mark:focus-visible, svg .mark:hover { filter: brightness(1.1); }
+#tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--surface); font-size: 13px;
+  padding: 7px 10px; border-radius: 8px; max-width: 280px; opacity: 0; transition: opacity .08s;
+  z-index: 10; line-height: 1.4; }
+.grid2 { display: grid; grid-template-columns: 1fr; gap: 20px; }
+@media (min-width: 900px) { .grid2 { grid-template-columns: 1fr 1fr; } .grid2 .card { margin: 0; } }
+.method p, .method li { color: var(--ink2); font-size: 14px; max-width: 75ch; }
+.method ul { padding-left: 18px; }
+code { font-size: 13px; }
+footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>QuoteBench</h1>
+  <p class="lede">How often do AI language models get a quotation wrong when asked to quote a famous text
+    word for word? A quote counts as correct only if every word matches the source. Five public-domain English texts, <span id="nq"></span> questions, every answer checked
+    automatically against the source.</p>
+  <div class="banner" id="banner" hidden></div>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="filters" role="group" aria-label="Prompt condition">
+    <span class="sub" style="margin:0">Prompt:</span>
+    <div class="seg" id="condSeg">
+      <button type="button" data-cond="baseline" aria-pressed="true">Plain</button>
+      <button type="button" data-cond="cautious" aria-pressed="false">Only if sure</button>
+    </div>
+  </div>
+
+  <section class="card" aria-labelledby="t-table">
+    <h2 id="t-table">Leaderboard</h2>
+    <p class="sub"><em>Correct</em> = every word matches the named edition (punctuation and capitals ignored), as a share of
+      answered questions; 95% interval in grey. <em>Correct (strict)</em> also counts unreadable answers (a model that thinks
+      until the token limit and never answers) as wrong. The kinds of wrong answer are an approximate split. Click a column to sort.</p>
+    <div class="table-wrap"><table id="board"></table></div>
+  </section>
+
+  <section class="card" aria-labelledby="t-c1">
+    <h2 id="t-c1">How often each model's word-for-word quotation was wrong</h2>
+    <p class="sub">Share of answered questions, by kind of mistake (approximate split); the rest were correct.</p>
+    <div class="legend"><span style="--c:var(--s1)">Made up</span><span style="--c:var(--s2)">Altered</span><span style="--c:var(--s3)">Real passage, wrong place</span><span style="--c:var(--s4)">Spelling only / incomplete</span></div>
+    <div id="c1"></div>
+    <p class="caption" id="c1cap"></p>
+  </section>
+
+  <div class="grid2">
+    <section class="card" aria-labelledby="t-c2">
+      <h2 id="t-c2">Famous vs random passages</h2>
+      <p class="sub">Correct word-for-word rate on "quote this reference" and "what comes next" questions.</p>
+      <div class="legend"><span class="dot" style="--c:var(--s1-light)">Random</span><span class="dot" style="--c:var(--s1)">Famous</span></div>
+      <div id="c2"></div>
+      <p class="caption" id="c2cap"></p>
+    </section>
+    <section class="card" aria-labelledby="t-c4">
+      <h2 id="t-c4">Trick questions</h2>
+      <p class="sub">How often the model quoted a passage that does not exist (nonexistent references, famous misattributions).</p>
+      <div id="c4"></div>
+      <p class="caption" id="c4cap"></p>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="t-c3" style="margin-top:20px">
+    <h2 id="t-c3">Plain prompt vs "only if sure" vs lookup</h2>
+    <p class="sub">Same Bible and Constitution questions. Plain / only if sure: not word-for-word correct.
+      Lookup: the model names a passage and the system fetches it; wrong = nonexistent or not the one asked for.</p>
+    <div class="legend"><span style="--c:var(--s1)">Plain</span><span style="--c:var(--s2)">Only if sure</span><span style="--c:var(--s3)">Lookup</span></div>
+    <div id="c3"></div>
+    <p class="caption" id="c3cap"></p>
+  </section>
+
+  <section class="card" aria-labelledby="t-text">
+    <h2 id="t-text">By text</h2>
+    <p class="sub">Share of answered questions quoted wrong (not word for word), per source text (selected prompt).</p>
+    <div class="table-wrap"><table id="bytext"></table></div>
+  </section>
+
+  <section class="card method" aria-labelledby="t-method">
+    <h2 id="t-method">Method</h2>
+    <ul>
+      <li><strong>Texts:</strong> King James Bible, Shakespeare (Hamlet, Macbeth, Romeo and Juliet), U.S. Constitution, Pride and Prejudice, On the Origin of Species (1859). One fixed public-domain edition each, named in every prompt.</li>
+      <li><strong>Tasks:</strong> quote a reference; quote the passage that comes next; give a quote on a theme with its location; trick questions where the right answer is "this does not exist".</li>
+      <li><strong>Scoring:</strong> every prompt asks for the passage word for word, so a quote is <em>correct</em> only if every word matches the named edition letter for letter (punctuation and capitals ignored; a complete quote followed by extra text still counts). Wrong answers are sorted, approximately, into spelling only, incomplete, altered (word similarity &ge; <span id="lower"></span>), real passage from the wrong place, and made up.</li>
+      <li><strong>Settings:</strong> one user message, JSON answer, no tools or web search, temperature 0 where a model accepts it, up to 2,000 output tokens, each model's default reasoning.</li>
+      <li><strong>Not measured:</strong> hallucination in general, paraphrase, or quotation from obscure or private documents. Results hold for the exact model IDs and dates below.</li>
+    </ul>
+    <div class="table-wrap"><table id="models"></table></div>
+  </section>
+
+  <footer id="foot"></footer>
+</main>
+<div id="tip" role="tooltip"></div>
+
+<script type="application/json" id="data">__SUMMARY_JSON__</script>
+<script>
+(() => {
+  const S = JSON.parse(document.getElementById("data").textContent);
+  const done = m => m.calls_done >= S.expected_calls_per_model;
+  const models = S.models.filter(m => S.per_model[m.id]);
+  let cond = "baseline";
+  try { cond = localStorage.getItem("qb-cond") || "baseline"; } catch (e) {}
+  const pct = (v, d = 1) => v == null ? "–" : (100 * v).toFixed(d) + "%";
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+  const NS = "http://www.w3.org/2000/svg";
+
+  // ---------- header ----------
+  document.getElementById("nq").textContent = S.n_questions.toLocaleString();
+  document.getElementById("lower").textContent = S.scoring.thresholds.lower;
+  if (S.status !== "validated") {
+    const b = document.getElementById("banner");
+    b.hidden = false;
+    b.innerHTML = "<strong>Draft — not yet released.</strong> Numbers may still change; please do not cite them yet.";
+  }
+  const finished = S.models.filter(done).length;
+  const answers = S.models.reduce((a, m) => a + m.calls_done, 0);
+  const spend = S.models.reduce((a, m) => a + m.cost_usd, 0);
+  const kpi = (label, value) => `<div class="kpi"><div class="label">${label}</div><div class="value">${value}</div></div>`;
+  document.getElementById("kpis").innerHTML =
+    kpi("Models finished", `${finished} of ${S.models.length}`) +
+    kpi("Answers scored", answers.toLocaleString()) +
+    kpi("Spent so far", "$" + spend.toFixed(2)) +
+    kpi("Updated " + S.generated.slice(0, 10), S.generated.slice(11, 16) + " UTC");
+
+  // ---------- tooltip ----------
+  const tip = document.getElementById("tip");
+  const showTip = (el, x, y) => { tip.innerHTML = el.dataset.tip; tip.style.opacity = 1;
+    const r = tip.getBoundingClientRect();
+    tip.style.left = Math.min(window.innerWidth - r.width - 8, x + 12) + "px";
+    tip.style.top = Math.max(8, y - r.height - 10) + "px"; };
+  document.addEventListener("pointermove", e => {
+    const el = e.target.closest("[data-tip]");
+    if (el) showTip(el, e.clientX, e.clientY); else tip.style.opacity = 0; });
+  document.addEventListener("focusin", e => {
+    const el = e.target.closest("[data-tip]");
+    if (el) { const r = el.getBoundingClientRect(); showTip(el, r.right, r.top); } });
+  document.addEventListener("focusout", () => { tip.style.opacity = 0; });
+
+  // ---------- svg helpers ----------
+  const el = (tag, attrs, parent) => { const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; };
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  function frame(host, rows, rowH, labelW) {
+    host.innerHTML = "";
+    const W = Math.max(320, host.clientWidth), top = 4, axisH = 22;
+    const H = top + rows * rowH + axisH;
+    const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img"}, host);
+    const x0 = Math.min(labelW, W * 0.38), plotW = W - x0 - 56;
+    return {svg, W, H, x0, plotW, top, axisH};
+  }
+  function axis(f, max, ticks = 4) {
+    const step = niceStep(max / ticks);
+    for (let v = 0; v <= max + 1e-9; v += step) {
+      const x = f.x0 + f.plotW * v / max;
+      el("line", {x1: x, x2: x, y1: f.top, y2: f.H - f.axisH, stroke: css("--grid"), "stroke-width": 1}, f.svg);
+      const t = el("text", {x, y: f.H - 6, "text-anchor": "middle", class: "tick"}, f.svg);
+      t.textContent = Math.round(v * 100) + "%";
+    }
+    el("line", {x1: f.x0, x2: f.x0, y1: f.top, y2: f.H - f.axisH, stroke: css("--axis"), "stroke-width": 1}, f.svg);
+  }
+  function niceStep(raw) { const p = Math.pow(10, Math.floor(Math.log10(raw))); const n = raw / p;
+    return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * p; }
+  function niceMax(v) { const s = niceStep(Math.max(v, 0.01) / 4); return Math.ceil(v / s) * s || 0.05; }
+  // bar with 4px rounded data-end, square at the baseline
+  function bar(f, x, y, w, h, color, tipHtml, label) {
+    if (w <= 0) return;
+    const r = Math.min(4, w, h / 2);
+    const d = `M${x},${y} H${x + w - r} Q${x + w},${y} ${x + w},${y + r} V${y + h - r} Q${x + w},${y + h} ${x + w - r},${y + h} H${x} Z`;
+    const p = el("path", {d, fill: color, class: "mark", tabindex: 0, "data-tip": tipHtml, "aria-label": label}, f.svg);
+    p.dataset.tip = tipHtml;
+  }
+  function rowLabel(f, y, m) {
+    const t = el("text", {x: f.x0 - 10, y, "text-anchor": "end", "dominant-baseline": "middle"}, f.svg);
+    t.textContent = m.label + (done(m) ? "" : " *");
+  }
+  const order = () => [...models].sort((a, b) =>
+    (S.per_model[b.id][cond].correct.rate ?? 0) - (S.per_model[a.id][cond].correct.rate ?? 0));
+  const partialNote = () => models.some(m => !done(m)) ? " * still running: partial data." : "";
+  const range = arr => { const v = arr.filter(x => x != null); return v.length ? `${Math.min(...v)}–${Math.max(...v)}` : "0"; };
+
+  // ---------- leaderboard table ----------
+  const cols = [
+    {key: "model", label: "Model"},
+    {key: "correct", label: "Correct", rate: true},
+    {key: "correct_strict", label: "Correct (strict)", rate: true, title: "Unreadable answers (e.g. the model thought until the 2,000-token limit) counted as wrong"},
+    {key: "spelling_only", label: "Spelling only", rate: true, title: "Right words, different spelling (e.g. choose / chuse)"},
+    {key: "incomplete", label: "Incomplete", rate: true, title: "A correct but cut-short part of the passage"},
+    {key: "altered", label: "Altered", rate: true},
+    {key: "wrong_place", label: "Wrong place", rate: true}, {key: "fabricated", label: "Made up", rate: true},
+    {key: "abstained", label: "Didn't answer", rate: true}, {key: "trap_failure", label: "Fell for trap", rate: true},
+    {key: "location_error", label: "Wrong location", rate: true}, {key: "unparseable", label: "Unreadable"},
+  ];
+  let sortKey = "correct", sortDir = -1;
+  function drawTable() {
+    const rows = models.map(m => ({m, d: S.per_model[m.id][cond]}));
+    rows.sort((a, b) => {
+      if (sortKey === "model") return sortDir * a.m.label.localeCompare(b.m.label);
+      const va = cols.find(c => c.key === sortKey).rate ? a.d[sortKey].rate : a.d[sortKey];
+      const vb = cols.find(c => c.key === sortKey).rate ? b.d[sortKey].rate : b.d[sortKey];
+      return sortDir * ((va ?? -1) - (vb ?? -1)); });
+    const head = "<thead><tr>" + cols.map(c => `<th scope="col" aria-sort="${c.key === sortKey ? (sortDir > 0 ? "ascending" : "descending") : "none"}"><button type="button" data-key="${c.key}"${c.title ? ` title="${c.title}"` : ""}>${c.label}</button></th>`).join("") + "</tr></thead>";
+    const body = rows.map(({m, d}) => "<tr>" + cols.map(c => {
+      if (c.key === "model") return `<td>${esc(m.label)}${done(m) ? "" : `<span class="badge">running ${m.calls_done}/${S.expected_calls_per_model}</span>`}<span class="id">${esc(m.id)}</span></td>`;
+      if (!c.rate) return `<td>${d[c.key]}</td>`;
+      const v = d[c.key];
+      return `<td title="${v.k} of ${v.n}">${pct(v.rate)}<span class="ci">${v.rate == null ? "" : pct(v.lo, 0) + "–" + pct(v.hi, 0)}</span></td>`;
+    }).join("") + "</tr>").join("");
+    const t = document.getElementById("board");
+    t.innerHTML = head + "<tbody>" + body + "</tbody>";
+    t.querySelectorAll("th button").forEach(b => b.addEventListener("click", () => {
+      const k = b.dataset.key; sortDir = k === sortKey ? -sortDir : (k === "model" ? 1 : -1); sortKey = k; drawTable(); }));
+  }
+
+  // ---------- chart 1: errors stacked ----------
+  function chart1() {
+    const ms = order(), host = document.getElementById("c1"), rowH = 34;
+    const f = frame(host, ms.length, rowH, 170);
+    const nearly = d => ({k: d.spelling_only.k + d.incomplete.k, n: d.correct.n,
+      rate: (d.spelling_only.rate || 0) + (d.incomplete.rate || 0), lo: null, hi: null});
+    const parts = [[d => d.fabricated, "Made up", css("--s1")], [d => d.altered, "Altered", css("--s2")],
+                   [d => d.wrong_place, "Real, wrong place", css("--s3")], [nearly, "Spelling only / incomplete", css("--s4")]];
+    const tot = ms.map(m => parts.reduce((a, [get]) => a + (get(S.per_model[m.id][cond]).rate || 0), 0));
+    const max = niceMax(Math.max(...tot) * 1.25);
+    axis(f, max);
+    ms.forEach((m, i) => {
+      const d = S.per_model[m.id][cond], y = f.top + i * rowH + 9, h = rowH - 18;
+      rowLabel(f, y + h / 2, m);
+      let x = f.x0;
+      parts.forEach(([get, name, color]) => {
+        const v = get(d), w = f.plotW * (v.rate || 0) / max;
+        bar(f, x, y, Math.max(0, w - 2), h, color,
+          `<strong>${esc(m.label)}</strong><br>${name}: ${pct(v.rate)} (${v.k} of ${v.n})` + (v.lo == null ? "" : `<br>95% CI ${pct(v.lo)}–${pct(v.hi)}`),
+          `${m.label} ${name} ${pct(v.rate)}`);
+        x += w; });
+      const t = el("text", {x: x + 6, y: y + h / 2, "dominant-baseline": "middle"}, f.svg);
+      t.textContent = pct(d.correct.rate, 0) + " correct";
+    });
+    document.getElementById("c1cap").textContent =
+      `n = ${range(ms.map(m => S.per_model[m.id][cond].correct.n))} answered questions per model.` + partialNote();
+  }
+
+  // ---------- chart 2: famous vs random dumbbell ----------
+  function chart2() {
+    const ms = order(), host = document.getElementById("c2"), rowH = 30;
+    const f = frame(host, ms.length, rowH, 150);
+    const max = 1; axis(f, max, 4);
+    ms.forEach((m, i) => {
+      const fame = S.per_model[m.id][cond].by_fame || {};
+      const F = fame.famous && fame.famous.correct, R = fame.random && fame.random.correct;
+      const cy = f.top + i * rowH + rowH / 2;
+      rowLabel(f, cy, m);
+      if (!F || !R || F.rate == null || R.rate == null) return;
+      const xf = f.x0 + f.plotW * F.rate, xr = f.x0 + f.plotW * R.rate;
+      el("line", {x1: xr, x2: xf, y1: cy, y2: cy, stroke: css("--axis"), "stroke-width": 2, "stroke-linecap": "round"}, f.svg);
+      [[xr, R, css("--s1-light"), "Random"], [xf, F, css("--s1"), "Famous"]].forEach(([x, v, c, name]) => {
+        const g = el("circle", {cx: x, cy, r: 6, fill: c, stroke: css("--surface"), "stroke-width": 2, class: "mark", tabindex: 0}, f.svg);
+        g.dataset.tip = `<strong>${esc(m.label)}</strong><br>${name}: ${pct(v.rate)} correct (${v.k} of ${v.n})`; });
+    });
+    const ns = ms.flatMap(m => ["famous", "random"].map(k => (S.per_model[m.id][cond].by_fame[k] || {correct: {n: null}}).correct.n));
+    document.getElementById("c2cap").textContent = `n = ${range(ns)} answered questions per model and group.` + partialNote();
+  }
+
+  // ---------- chart 3: conditions ----------
+  function chart3() {
+    const ms = order(), host = document.getElementById("c3"), rowH = 54;
+    const f = frame(host, ms.length, rowH, 170);
+    const errRate = q => q.correct.rate == null ? null : 1 - q.correct.rate;
+    const vals = ms.map(m => { const p = S.per_model[m.id];
+      return [["Plain", errRate(p.lookup_subset.baseline), p.lookup_subset.baseline.correct.n, css("--s1")],
+              ["Only if sure", errRate(p.lookup_subset.cautious), p.lookup_subset.cautious.correct.n, css("--s2")],
+              ["Lookup", p.lookup.wrong_reference.rate, p.lookup.wrong_reference.n, css("--s3")]]; });
+    const max = niceMax(Math.max(0.02, ...vals.flat().map(v => v[1] || 0)) * 1.2);
+    axis(f, max);
+    ms.forEach((m, i) => {
+      const y0 = f.top + i * rowH + 6, bh = (rowH - 12) / 3;
+      rowLabel(f, y0 + (rowH - 12) / 2, m);
+      vals[i].forEach(([name, v, n, c], k) => {
+        const w = f.plotW * (v || 0) / max;
+        bar(f, f.x0, y0 + k * bh, w, bh - 2, c, `<strong>${esc(m.label)}</strong><br>${name}: ${pct(v)} wrong (n = ${n})`, `${m.label} ${name} ${pct(v)}`);
+        if (v === 0) { const t = el("text", {x: f.x0 + 4, y: y0 + k * bh + bh / 2, "dominant-baseline": "middle", class: "tick"}, f.svg); t.textContent = "0%"; }
+      });
+    });
+    const nq = Math.max(...ms.map(m => S.per_model[m.id].lookup_subset.n_questions));
+    document.getElementById("c3cap").textContent = `${nq} questions with all three versions (Bible and Constitution).` + partialNote();
+  }
+
+  // ---------- chart 4: traps ----------
+  function chart4() {
+    const ms = order(), host = document.getElementById("c4"), rowH = 30;
+    const f = frame(host, ms.length, rowH, 150);
+    const vs = ms.map(m => S.per_model[m.id][cond].trap_failure);
+    const max = niceMax(Math.max(0.05, ...vs.map(v => v.hi || 0)) * 1.1);
+    axis(f, max);
+    ms.forEach((m, i) => {
+      const v = vs[i], y = f.top + i * rowH + 8, h = rowH - 16;
+      rowLabel(f, y + h / 2, m);
+      if (v.rate == null) return;
+      bar(f, f.x0, y, f.plotW * v.rate / max, h, css("--s1"),
+        `<strong>${esc(m.label)}</strong><br>Fell for ${v.k} of ${v.n} traps (${pct(v.rate)})<br>95% CI ${pct(v.lo)}–${pct(v.hi)}`, `${m.label} ${pct(v.rate)}`);
+      const xl = f.x0 + f.plotW * v.lo / max, xh = f.x0 + f.plotW * v.hi / max;
+      el("line", {x1: xl, x2: xh, y1: y + h / 2, y2: y + h / 2, stroke: css("--ink2"), "stroke-width": 1}, f.svg);
+      const t = el("text", {x: xh + 6, y: y + h / 2, "dominant-baseline": "middle"}, f.svg); t.textContent = pct(v.rate, 0);
+    });
+    document.getElementById("c4cap").textContent = `n = ${range(vs.map(v => v.n))} trap questions per model; lines are 95% intervals.` + partialNote();
+  }
+
+  // ---------- by-text table ----------
+  const TEXTS = [["bible_kjv", "KJV Bible"], ["shakespeare", "Shakespeare"], ["us_constitution", "Constitution"],
+                 ["pride_prejudice", "Pride and Prejudice"], ["origin_species", "Origin of Species"]];
+  function drawByText() {
+    const head = "<thead><tr><th scope='col'>Model</th>" + TEXTS.map(([, n]) => `<th scope="col">${n}</th>`).join("") + "</tr></thead>";
+    const body = order().map(m => "<tr><td>" + esc(m.label) + "</td>" + TEXTS.map(([t]) => {
+      const d = (S.per_model[m.id][cond].by_text || {})[t];
+      if (!d || !d.correct.n) return "<td>–</td>";
+      const k = d.correct.n - d.correct.k;
+      return `<td title="${k} of ${d.correct.n}">${pct(k / d.correct.n)}</td>`; }).join("") + "</tr>").join("");
+    document.getElementById("bytext").innerHTML = head + "<tbody>" + body + "</tbody>";
+  }
+
+  // ---------- models + footer ----------
+  document.getElementById("models").innerHTML = "<thead><tr><th scope='col'>Model</th><th scope='col'>Exact ID</th><th scope='col'>Served by</th><th scope='col'>Run</th><th scope='col'>Cost</th></tr></thead><tbody>" +
+    S.models.map(m => `<tr><td>${esc(m.label)}${m.note ? ` <span class="ci">(${esc(m.note)})</span>` : ""}</td><td>${esc(m.id)}</td><td>${esc(m.api === "anthropic" ? "Anthropic API" : (m.hosts.join(", ") || "–") + " via OpenRouter")}</td><td>${m.run_dates.length ? esc(m.run_dates[0]) : "not run"}</td><td>$${m.cost_usd.toFixed(2)}</td></tr>`).join("") + "</tbody>";
+  document.getElementById("foot").innerHTML = `QuoteBench ${esc(S.version)} · generated ${esc(S.generated)} from <code>results/summary.json</code> · scoring thresholds ${esc(S.scoring.status)} · code MIT, test set CC BY 4.0 · <a href=\"https://github.com/codebymax10/quotebench\">repository</a> · paper at release`;
+
+  function drawAll() { drawTable(); chart1(); chart2(); chart3(); chart4(); drawByText(); }
+  document.querySelectorAll("#condSeg button").forEach(b => {
+    b.setAttribute("aria-pressed", b.dataset.cond === cond);
+    b.addEventListener("click", () => { cond = b.dataset.cond;
+      try { localStorage.setItem("qb-cond", cond); } catch (e) {}
+      document.querySelectorAll("#condSeg button").forEach(x => x.setAttribute("aria-pressed", x === b)); drawAll(); }); });
+  let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(drawAll, 120); });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawAll);
+  drawAll();
+})();
+</script>
+</body>
+</html>

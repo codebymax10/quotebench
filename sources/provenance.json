@@ -1,0 +1,64 @@
+{
+  "bible_kjv": {
+    "files": {
+      "pg10.txt": {
+        "url": "https://www.gutenberg.org/cache/epub/10/pg10.txt",
+        "retrieved": "2026-10-11",
+        "sha256": "0204adaed1f25700aa854218cae63c7172228c41088f335e99167a071eed83c0",
+        "bytes": 4455950
+      }
+    }
+  },
+  "shakespeare": {
+    "files": {
+      "pg100.txt": {
+        "url": "https://www.gutenberg.org/cache/epub/100/pg100.txt",
+        "retrieved": "2026-10-11",
+        "sha256": "3cf4b3d44ee14cff4e14e78e2ad3318eff76f3f7f2afc3cee6bb925879110a37",
+        "bytes": 5638480
+      }
+    }
+  },
+  "us_constitution": {
+    "files": {
+      "constitution-transcript.html": {
+        "url": "https://www.archives.gov/founding-docs/constitution-transcript",
+        "retrieved": "2026-10-11",
+        "sha256": "11d16354933d7f1d66704274503551f8263051c89a867b06ddcf901c1e16ed26",
+        "bytes": 70555
+      },
+      "bill-of-rights-transcript.html": {
+        "url": "https://www.archives.gov/founding-docs/bill-of-rights-transcript",
+        "retrieved": "2026-10-11",
+        "sha256": "168f61d7f035d9e13c45ad6cf0685a40a7fe9058123cba07acffb67bd99cf0d9",
+        "bytes": 47259
+      },
+      "amendments-11-27.html": {
+        "url": "https://www.archives.gov/founding-docs/amendments-11-27",
+        "retrieved": "2026-10-11",
+        "sha256": "09f916888f69498f2de7cf230abd3e772986fb17e12f4dd0c0cebc5fed70a256",
+        "bytes": 57662
+      }
+    }
+  },
+  "pride_prejudice": {
+    "files": {
+      "pg1342.txt": {
+        "url": "https://www.gutenberg.org/cache/epub/1342/pg1342.txt",
+        "retrieved": "2026-10-11",
+        "sha256": "3f6bb9d6f78e0293b56acd4714dd68cb7d6d1d293402031ce9d5a216bcaf9d75",
+        "bytes": 772386
+      }
+    }
+  },
+  "origin_species": {
+    "files": {
+      "pg1228.txt": {
+        "url": "https://www.gutenberg.org/cache/epub/1228/pg1228.txt",
+        "retrieved": "2026-10-11",
+        "sha256": "362142cb7c6f90850477520cfe2a62fe423ae92ea8eb6d9cd8b30ddb39de60b9",
+        "bytes": 970611
+      }
+    }
+  }
+}

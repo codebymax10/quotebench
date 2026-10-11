@@ -1,0 +1,32 @@
+# Models under test (SPEC §6). Chosen by Maksim on 2026-10-11 (DECISIONS D8). Exact OpenRouter
+# IDs; prices are fetched live at run time and saved to results/pricing.json.
+# `api: anthropic` models are called through the Anthropic Messages API with ANTHROPIC_API_KEY
+# instead of OpenRouter (DECISIONS D10); `api_model` is the Anthropic model ID.
+# `providers`: OpenRouter hosts allowed to serve the model, no fallback to others (DECISIONS D12).
+models:
+  - {id: anthropic/claude-sonnet-5.5,   label: Claude Sonnet 5.5,     provider: Anthropic, role: flagship, api: anthropic, api_model: claude-sonnet-5-5}
+  - {id: anthropic/claude-haiku-5.5,    label: Claude Haiku 5.5,      provider: Anthropic, role: small, api: anthropic, api_model: claude-haiku-5-5}
+  - {id: openai/gpt-6-luna,             label: GPT-6 Luna,            provider: OpenAI,    role: small, providers: [openai]}
+  - {id: google/gemini-3.1-flash-lite,  label: Gemini 3.1 Flash Lite, provider: Google,    role: small, note: model used by Selah, providers: [google-ai-studio, google-vertex]}
+  - {id: deepseek/deepseek-v4-pro-0813, label: DeepSeek V4 Pro,       provider: DeepSeek,  role: open-weights, providers: [novita]}
+  - {id: meta-llama/llama-4-maverick,   label: Llama 4 Maverick,      provider: Meta,      role: open-weights, providers: [novita]}
+
+# Not run (too expensive for the budget, DECISIONS D13):
+# - {id: openai/gpt-6.1-sol,            label: GPT-6.1 Sol,           provider: OpenAI,    role: flagship, providers: [openai]}
+# - {id: google/gemini-3.1-pro-preview, label: Gemini 3.1 Pro,        provider: Google,    role: flagship, providers: [google-ai-studio, google-vertex]}
+# - {id: x-ai/grok-4.7,                 label: Grok 4.7,              provider: xAI,       role: flagship, providers: [xai]}
+# - {id: qwen/qwen3.8-2.4t-a95b,        label: Qwen 3.8 (2.4T),       provider: Qwen,      role: open-weights, providers: [alibaba]}
+
+# --dry-run: 10 fixed questions (all their conditions) on these two cheap models.
+dry_run_models: [anthropic/claude-haiku-5.5, google/gemini-3.1-flash-lite]
+dry_run_questions: [t1-kjv-0001, t1-kjv-0075, t1-constitution-0020, t2-shakespeare-0001, t2-pride-0030,
+                    t2-origin-0040, t3-kjv-0001, t3-shakespeare-0011, t4-kjv-0001, t4-kjv-0016]
+
+settings:
+  temperature: 0        # sent only to models that accept it (OpenAI GPT-6.x and Anthropic 5.x do not)
+  max_tokens: 2000     # SPEC said 400; raised because thinking used it up (DECISIONS D11)
+  # reasoning: not sent, so every model runs at its default reasoning setting (SPEC §6);
+  # reasoning tokens used are recorded per call.
+  concurrency: 100      # parallel requests per model (thinking models take 10-30 s per answer; no rate limits seen)
+  max_attempts: 6       # retries on rate limits / server errors, with exponential backoff
+  timeout_seconds: 120
