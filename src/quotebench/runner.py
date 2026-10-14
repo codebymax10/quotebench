@@ -69,8 +69,13 @@ def model_routes(cfg: dict) -> dict[str, dict]:
     serves them; prices come from the OpenRouter listing, which matches first-party pricing.
     """
     return {m["id"]: {"api": m.get("api", "openrouter"), "api_model": m.get("api_model", m["id"]),
-                      "providers": m.get("providers")}
+                      "providers": m.get("providers"), "max_tokens": m.get("max_tokens")}
             for m in cfg["models"]}
+
+
+def token_limits(routes: dict[str, dict]) -> dict[str, int]:
+    """Per-model output limits below the global one (a host's maximum, DECISIONS D16)."""
+    return {m: r["max_tokens"] for m, r in routes.items() if r.get("max_tokens")}
 
 
 def fetch_pricing(model_ids: list[str], client: httpx.Client | None = None) -> dict:
@@ -169,6 +174,9 @@ def request_body(job: Job, settings: dict, supported: list[str], providers: list
 # Cache
 
 
+# finish reasons meaning "stopped at max_tokens" (OpenRouter / Anthropic)
+CUT_OFF = ("length", "max_tokens")
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS calls (
     key TEXT PRIMARY KEY,
@@ -214,9 +222,24 @@ class Cache:
         self.db.execute(f"INSERT OR REPLACE INTO calls ({cols}) VALUES ({marks})", list(rec.values()))
         self.db.commit()
 
-    def max_tokens_used(self) -> set[int]:
-        """The max_tokens values of all cached requests (should be exactly one)."""
-        return {json.loads(r[0]).get("max_tokens") for r in self.db.execute("SELECT request FROM calls")}
+    def max_tokens_used(self) -> dict[str, set[int]]:
+        """Per model, the max_tokens values of its successful cached requests."""
+        out: dict[str, set[int]] = {}
+        for model, req in self.db.execute("SELECT model, request FROM calls WHERE status = 'ok'"):
+            out.setdefault(model, set()).add(json.loads(req).get("max_tokens"))
+        return out
+
+    def cut_off_below(self, max_tokens: int, per_model: dict[str, int] | None = None) -> set[str]:
+        """Keys of answers that stopped at a token limit lower than the current one (DECISIONS D16).
+
+        An answer that finished under its limit is exactly what the model would have written
+        with a higher limit, so it stays; one that was cut off has to be asked again.
+        """
+        per_model = per_model or {}
+        marks = ", ".join("?" for _ in CUT_OFF)
+        rows = self.db.execute(f"SELECT key, model, request FROM calls WHERE finish_reason IN ({marks})", list(CUT_OFF))
+        return {k for k, model, req in rows
+                if json.loads(req).get("max_tokens", 0) < per_model.get(model, max_tokens)}
 
     def total_cost(self) -> float:
         return self.db.execute("SELECT COALESCE(SUM(cost), 0) FROM calls").fetchone()[0]
@@ -237,7 +260,8 @@ class Cache:
 # Estimates
 
 
-def estimate(jobs: list[Job], pricing: dict, settings: dict, cache: Cache) -> list[dict]:
+def estimate(jobs: list[Job], pricing: dict, settings: dict, cache: Cache,
+             limits: dict[str, int] | None = None) -> list[dict]:
     """Per model: calls still to make, and expected / worst-case cost.
 
     Expected tokens come from this model's cached calls once there are >= 5 (e.g. after the dry
@@ -246,7 +270,8 @@ def estimate(jobs: list[Job], pricing: dict, settings: dict, cache: Cache) -> li
     """
     out = []
     for model in dict.fromkeys(j.model for j in jobs):
-        todo = [j for j in jobs if j.model == model and (r := cache.get(j.key)) is None]
+        redo = cache.cut_off_below(settings["max_tokens"], limits)
+        todo = [j for j in jobs if j.model == model and (cache.get(j.key) is None or j.key in redo)]
         price = pricing["models"][model]
         n_seen, avg_in, avg_out = cache.model_averages(model)
         prompt_toks = sum(len(j.prompt) / 4 + 10 for j in todo)
@@ -255,7 +280,7 @@ def estimate(jobs: list[Job], pricing: dict, settings: dict, cache: Cache) -> li
         else:
             # ~350 output tokens: measured mean of thinking models in the dry run at a 2,000 limit
             exp_in, exp_out, basis = prompt_toks, 350 * len(todo), "rough guess (no calls yet)"
-        worst_out = settings["max_tokens"] * len(todo)
+        worst_out = (limits or {}).get(model, settings["max_tokens"]) * len(todo)
         out.append({
             "model": model, "calls": len(todo), "basis": basis,
             "expected_cost": exp_in * price["prompt"] + exp_out * price["completion"],
@@ -386,12 +411,14 @@ async def run_jobs(jobs: list[Job], cache: Cache, pricing: dict, settings: dict,
                    transport: httpx.AsyncBaseTransport | None = None,
                    progress: Callable[[dict], None] | None = None,
                    sleep: Callable[[float], "asyncio.Future"] = asyncio.sleep,
-                   routes: dict[str, dict] | None = None, anthropic_client=None) -> dict:
+                   routes: dict[str, dict] | None = None, anthropic_client=None,
+                   spent_before: float = 0.0) -> dict:
     """Run every job not already cached. Returns counts and spend.
 
     ``routes`` (from ``model_routes``) sends some models to the Anthropic API; the rest go to
     OpenRouter. ``anthropic_client`` defaults to an ``AsyncAnthropic`` built from
-    ANTHROPIC_API_KEY (or the SDK's default credentials).
+    ANTHROPIC_API_KEY (or the SDK's default credentials). ``spent_before`` is money spent on
+    answers no longer in the cache (``archived_costs``); it counts towards ``max_cost``.
     """
     routes = routes or {}
     if anthropic_client is None and any(routes.get(j.model, {}).get("api") == "anthropic" for j in jobs):
@@ -400,12 +427,13 @@ async def run_jobs(jobs: list[Job], cache: Cache, pricing: dict, settings: dict,
         key = load_api_key("ANTHROPIC_API_KEY", required=False)
         kwargs = {"max_retries": settings["max_attempts"] - 1, "timeout": settings["timeout_seconds"]}
         anthropic_client = anthropic.AsyncAnthropic(api_key=key, **kwargs) if key else anthropic.AsyncAnthropic(**kwargs)
+    redo = cache.cut_off_below(settings["max_tokens"], token_limits(routes))
     todo = []
     for j in jobs:
         rec = cache.get(j.key)
-        if rec is None or (retry_errors and rec["status"] == "error"):
+        if rec is None or (retry_errors and rec["status"] == "error") or j.key in redo:
             todo.append(j)
-    budget = Budget(cache.total_cost(), max_cost)
+    budget = Budget(cache.total_cost() + spent_before, max_cost)
     stats = {"done": 0, "errors": 0, "skipped_cached": len(jobs) - len(todo), "not_run_budget": 0}
     headers = {"Authorization": f"Bearer {api_key}", "X-Title": "QuoteBench"}
     sems: dict[str, asyncio.Semaphore] = {}
@@ -421,19 +449,20 @@ async def run_jobs(jobs: list[Job], cache: Cache, pricing: dict, settings: dict,
                     stats["not_run_budget"] += 1
                     return
                 price = pricing["models"][job.model]
-                worst = (len(job.prompt) / 3 + 20) * price["prompt"] + settings["max_tokens"] * price["completion"]
+                route = routes.get(job.model, {"api": "openrouter"})
+                s = {**settings, "max_tokens": route.get("max_tokens") or settings["max_tokens"]}
+                worst = (len(job.prompt) / 3 + 20) * price["prompt"] + s["max_tokens"] * price["completion"]
                 try:
                     budget.reserve(worst)
                 except BudgetExceeded:
                     stats["not_run_budget"] += 1
                     return
-                route = routes.get(job.model, {"api": "openrouter"})
                 if route["api"] == "anthropic":
-                    body = anthropic_body(job, settings, route["api_model"])
+                    body = anthropic_body(job, s, route["api_model"])
                     rec = await call_one_anthropic(anthropic_client, job, body, price)
                 else:
-                    body = request_body(job, settings, price["supported_parameters"], route.get("providers"))
-                    rec = await call_one(client, job, body, settings, sleep=sleep)
+                    body = request_body(job, s, price["supported_parameters"], route.get("providers"))
+                    rec = await call_one(client, job, body, s, sleep=sleep)
                 if rec["status"] == "ok" and rec["cost"] is None:
                     rec["cost"] = (rec["prompt_tokens"] or 0) * price["prompt"] + (rec["completion_tokens"] or 0) * price["completion"]
                 budget.settle(worst, rec["cost"] or 0.0)
@@ -451,6 +480,43 @@ async def run_jobs(jobs: list[Job], cache: Cache, pricing: dict, settings: dict,
 
 # --------------------------------------------------------------------------------------
 # Export
+
+
+ARCHIVE_DIR = ROOT / "results" / "archive"
+
+
+def archived_costs(archive_dir: Path = ARCHIVE_DIR) -> dict[str, float]:
+    """Per model, what replaced or discarded answers (dry runs, cut-off answers) cost.
+
+    Those answers are no longer in the cache, but the money was spent: it counts towards
+    ``--max-cost`` and the reported spend.
+    """
+    out: dict[str, float] = {}
+    for f in sorted(archive_dir.rglob("*.jsonl")) if archive_dir.exists() else []:
+        for line in f.read_text(encoding="utf-8").splitlines():
+            rec = json.loads(line)
+            out[rec["model"]] = out.get(rec["model"], 0.0) + (rec.get("cost") or 0.0)
+    return out
+
+
+def archive_cut_off(cache: Cache, max_tokens: int, out_dir: Path,
+                    per_model: dict[str, int] | None = None) -> list[Path]:
+    """Before re-asking, keep the cut-off answers in ``out_dir/<model>.jsonl`` for the record."""
+    keys = cache.cut_off_below(max_tokens, per_model)
+    by_model: dict[str, list[dict]] = {}
+    for row in cache.rows():
+        if row["key"] in keys:
+            rec = dict(row)
+            for k in ("request", "response"):
+                rec[k] = json.loads(rec[k]) if rec[k] else None
+            by_model.setdefault(rec["model"], []).append(rec)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    paths = []
+    for model, recs in by_model.items():
+        path = out_dir / (model.replace("/", "__") + ".jsonl")
+        path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in recs), encoding="utf-8")
+        paths.append(path)
+    return paths
 
 
 def export_raw(cache: Cache) -> list[Path]:

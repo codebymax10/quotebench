@@ -216,3 +216,62 @@ def test_anthropic_errors_are_recorded(cache):
     jobs2 = jobs_for("fake/no-temp", 2)[1:]
     run_routed(jobs2, cache, FakeOpenRouter(), FakeAnthropic(fail_with=conn))
     assert cache.get(jobs2[0].key)["error"].startswith("APIConnectionError")
+
+
+def cut_off_response(body):
+    return httpx.Response(200, json={
+        "id": "gen-2", "model": body["model"], "provider": "FakeProvider",
+        "choices": [{"message": {"role": "assistant", "content": ""}, "finish_reason": "length"}],
+        "usage": {"prompt_tokens": 100, "completion_tokens": body["max_tokens"], "cost": 0.002,
+                  "completion_tokens_details": {"reasoning_tokens": body["max_tokens"]}},
+    })
+
+
+def test_raising_the_limit_reasks_only_cut_off_answers(cache, tmp_path):
+    jobs = jobs_for("fake/with-temp")
+    fake = FakeOpenRouter([None, cut_off_response({"model": "fake/with-temp", "max_tokens": 400}), None])
+    run(jobs, cache, fake)
+    assert cache.cut_off_below(400) == set()               # same limit: nothing to redo
+    assert cache.cut_off_below(4000) == {jobs[1].key}       # higher limit: only the cut-off one
+    old = R.archive_cut_off(cache, 4000, tmp_path / "archive")
+    assert len(old) == 1 and json.loads(old[0].read_text())["finish_reason"] == "length"
+
+    fake2 = FakeOpenRouter()
+    async def no_sleep(_):
+        return None
+    stats = asyncio.run(R.run_jobs(jobs, cache, PRICING, {**SETTINGS, "max_tokens": 4000}, "sk-test", 10.0,
+                                   transport=httpx.MockTransport(fake2), sleep=no_sleep))
+    assert stats["done"] == 1 and len(fake2.calls) == 1 and fake2.calls[0]["max_tokens"] == 4000
+    assert cache.get(jobs[1].key)["finish_reason"] == "stop"
+    assert cache.cut_off_below(4000) == set()
+    # the two answers that finished under 400 tokens are kept as they were
+    assert {json.loads(cache.get(j.key)["request"])["max_tokens"] for j in jobs} == {400, 4000}
+
+
+def test_per_model_limit_for_hosts_with_a_lower_maximum(cache):
+    jobs = jobs_for("fake/with-temp", n=1)
+    run(jobs, cache, FakeOpenRouter([cut_off_response({"model": "fake/with-temp", "max_tokens": 400})]))
+    assert cache.cut_off_below(16000, {"fake/with-temp": 400}) == set()
+    assert cache.cut_off_below(16000, {"fake/with-temp": 800}) == {jobs[0].key}
+    fake = FakeOpenRouter()
+    async def no_sleep(_):
+        return None
+    routes = {"fake/with-temp": {"api": "openrouter", "max_tokens": 800}}
+    asyncio.run(R.run_jobs(jobs, cache, PRICING, {**SETTINGS, "max_tokens": 16000}, "sk-test", 10.0,
+                           transport=httpx.MockTransport(fake), sleep=no_sleep, routes=routes))
+    assert [c["max_tokens"] for c in fake.calls] == [800]
+    assert cache.max_tokens_used() == {"fake/with-temp": {800}}
+
+
+def test_replaced_answers_still_count_towards_the_cap(cache, tmp_path):
+    arch = tmp_path / "archive" / "old"
+    arch.mkdir(parents=True)
+    (arch / "m.jsonl").write_text(json.dumps({"model": "fake/with-temp", "cost": 9.999}) + "\n")
+    spent = sum(R.archived_costs(tmp_path / "archive").values())
+    assert spent == 9.999
+    async def no_sleep(_):
+        return None
+    stats = asyncio.run(R.run_jobs(jobs_for("fake/with-temp"), cache, PRICING, SETTINGS, "sk-test", 10.0,
+                                   transport=httpx.MockTransport(FakeOpenRouter()), sleep=no_sleep,
+                                   spent_before=spent))
+    assert stats["budget_stopped"] and stats["spent_total"] <= 10.0

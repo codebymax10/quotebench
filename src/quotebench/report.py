@@ -53,7 +53,7 @@ import datetime as dt
 import json
 import math
 
-from .runner import CACHE_PATH, PRICING_PATH
+from .runner import CACHE_PATH, PRICING_PATH, archived_costs
 
 SUMMARY_PATH = RESULTS_DIR / "summary.json"
 FIGURES_DIR = RESULTS_DIR / "figures"
@@ -138,6 +138,7 @@ def summarise(df: pd.DataFrame | None = None) -> dict:
         "models": [], "per_model": {},
     }
     pricing = json.loads(PRICING_PATH.read_text()) if PRICING_PATH.exists() else {"models": {}}
+    archived = archived_costs()
     for m in cfg["models"]:
         mid = m["id"]
         d = main[main["model"] == mid]
@@ -145,7 +146,8 @@ def summarise(df: pd.DataFrame | None = None) -> dict:
         info["api"] = m.get("api", "openrouter")
         info["hosts"] = sorted(x for x in d["provider"].dropna().unique()) if len(d) else []
         info["calls_done"] = int((df["model"] == mid).sum())
-        info["cost_usd"] = float(df.loc[df["model"] == mid, "cost"].fillna(0).sum())
+        # incl. answers that were later replaced (dry runs, cut-off answers re-asked, D16)
+        info["cost_usd"] = float(df.loc[df["model"] == mid, "cost"].fillna(0).sum()) + archived.get(mid, 0.0)
         info["run_dates"] = [d["timestamp"].min()[:10], d["timestamp"].max()[:10]] if len(d) else []
         info["mean_output_tokens"] = float(d["completion_tokens"].mean()) if len(d) else None
         out["models"].append(info)
@@ -197,7 +199,8 @@ BLUE_LIGHT = "#86b6ef"
 
 def _models_with_data(summary: dict) -> list[dict]:
     ms = [m for m in summary["models"] if m["id"] in summary["per_model"]]
-    return sorted(ms, key=lambda m: -(summary["per_model"][m["id"]]["baseline"]["correct"]["rate"] or 0))
+    # ranked by the strict score: an answer the model never finished counts as wrong (D14, D16)
+    return sorted(ms, key=lambda m: -(summary["per_model"][m["id"]]["baseline"]["correct_strict"]["rate"] or 0))
 
 
 def _style(ax, xmax: float):
@@ -355,12 +358,13 @@ def readme_table(summary: dict) -> str:
     for m in _models_with_data(summary):
         b = summary["per_model"][m["id"]]["baseline"]
         f = lambda v: "–" if v["rate"] is None else f"{100 * v['rate']:.1f}%"  # noqa: E731
-        rows.append(f"| {m['label']} | {f(b['correct'])} | {f(b['correct_strict'])} | {f(b['fabricated'])} "
+        rows.append(f"| {m['label']} | {f(b['correct_strict'])} | {f(b['correct'])} | {f(b['fabricated'])} "
                     f"| {f(b['trap_failure'])} | {b['correct']['n']} |")
-    head = ("| Model | Correct | Correct (strict) | Made up | Fell for trick questions | Answered |\n"
+    head = ("| Model | Correct (strict) | Correct | Made up | Fell for trick questions | Answered |\n"
             "|---|---|---|---|---|---|")
-    note = (f"\n\nPlain prompt; shares of answered questions that have a real answer. *Strict* also counts "
-            f"answers the model never finished (it reasoned past the token limit) as wrong. Generated "
+    note = (f"\n\nPlain prompt; shares of answered questions that have a real answer. Ranked by *Correct "
+            f"(strict)*, which also counts answers the model never finished (it reasoned past the token "
+            f"limit) as wrong; *Correct* leaves those out. Generated "
             f"{summary['generated'][:10]} from `results/summary.json`; 95% intervals and all breakdowns "
             f"are in that file and on the leaderboard.")
     return head + "\n" + "\n".join(rows) + note
