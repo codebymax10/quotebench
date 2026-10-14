@@ -9,7 +9,8 @@ models:
   - {id: openai/gpt-6-luna,             label: GPT-6 Luna,            provider: OpenAI,    role: small, providers: [openai]}
   - {id: google/gemini-3.1-flash-lite,  label: Gemini 3.1 Flash Lite, provider: Google,    role: small, note: model used by Selah, providers: [google-ai-studio, google-vertex]}
   - {id: deepseek/deepseek-v4-pro-0813, label: DeepSeek V4 Pro,       provider: DeepSeek,  role: open-weights, providers: [novita]}
-  - {id: meta-llama/llama-4-maverick,   label: Llama 4 Maverick,      provider: Meta,      role: open-weights, providers: [novita]}
+  - {id: meta-llama/llama-4-maverick,   label: Llama 4 Maverick,      provider: Meta,      role: open-weights, providers: [novita],
+     max_tokens: 8192}   # Novita's maximum output (D16)
 
 # Not run (too expensive for the budget, DECISIONS D13):
 # - {id: openai/gpt-6.1-sol,            label: GPT-6.1 Sol,           provider: OpenAI,    role: flagship, providers: [openai]}
@@ -24,9 +25,9 @@ dry_run_questions: [t1-kjv-0001, t1-kjv-0075, t1-constitution-0020, t2-shakespea
 
 settings:
   temperature: 0        # sent only to models that accept it (OpenAI GPT-6.x and Anthropic 5.x do not)
-  max_tokens: 2000     # SPEC said 400; raised because thinking used it up (DECISIONS D11)
+  max_tokens: 16000    # SPEC said 400; 2,000 (D11) still cut off thinking models (D16)
   # reasoning: not sent, so every model runs at its default reasoning setting (SPEC §6);
   # reasoning tokens used are recorded per call.
   concurrency: 100      # parallel requests per model (thinking models take 10-30 s per answer; no rate limits seen)
   max_attempts: 6       # retries on rate limits / server errors, with exponential backoff
-  timeout_seconds: 120
+  timeout_seconds: 900  # long thinking at 16,000 tokens can take minutes

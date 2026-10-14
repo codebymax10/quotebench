@@ -22,16 +22,16 @@ QuoteBench measures **verbatim quotation only** — not hallucination in general
 Interactive leaderboard: **[codebymax10.github.io/quotebench](https://codebymax10.github.io/quotebench/)** (source: [`docs/index.html`](docs/index.html)) (sortable table, charts, per-text breakdown).
 
 <!-- results:start -->
-| Model | Correct | Correct (strict) | Made up | Fell for trick questions | Answered |
+| Model | Correct (strict) | Correct | Made up | Fell for trick questions | Answered |
 |---|---|---|---|---|---|
-| DeepSeek V4 Pro | 93.9% | 76.7% | 1.2% | 1.1% | 490 |
-| Claude Sonnet 5.5 | 91.7% | 90.6% | 1.0% | 8.0% | 579 |
-| GPT-6 Luna | 87.1% | 77.6% | 5.7% | 22.9% | 529 |
-| Claude Haiku 5.5 | 83.5% | 82.7% | 3.0% | 6.0% | 498 |
-| Gemini 3.1 Flash Lite | 76.1% | 76.0% | 17.3% | 17.0% | 595 |
-| Llama 4 Maverick | 21.4% | 21.4% | 64.8% | 24.0% | 583 |
+| Claude Sonnet 5.5 | 91.8% | 91.8% | 1.0% | 8.0% | 582 |
+| GPT-6 Luna | 84.6% | 84.6% | 7.3% | 25.0% | 564 |
+| Claude Haiku 5.5 | 83.4% | 83.4% | 3.0% | 6.0% | 501 |
+| DeepSeek V4 Pro | 83.3% | 85.9% | 5.3% | 4.0% | 582 |
+| Gemini 3.1 Flash Lite | 76.0% | 76.1% | 17.3% | 17.0% | 595 |
+| Llama 4 Maverick | 21.4% | 21.4% | 65.0% | 24.0% | 585 |
 
-Plain prompt; shares of answered questions that have a real answer. *Strict* also counts answers the model never finished (it reasoned past the token limit) as wrong. Generated 2026-10-11 from `results/summary.json`; 95% intervals and all breakdowns are in that file and on the leaderboard.
+Plain prompt; shares of answered questions that have a real answer. Ranked by *Correct (strict)*, which also counts answers the model never finished (it reasoned past the token limit) as wrong; *Correct* leaves those out. Generated 2026-10-14 from `results/summary.json`; 95% intervals and all breakdowns are in that file and on the leaderboard.
 <!-- results:end -->
 
 ## What is in the benchmark
@@ -42,7 +42,7 @@ Plain prompt; shares of answered questions that have a real answer. *Strict* als
 | **Tasks** (700 questions) | 1 — quote a reference (Bible, Constitution; 200) · 2 — quote the passage that comes next (250) · 3 — give a verbatim quote on a theme with its location (150) · 4 — trick questions: nonexistent references, famous misattributions, absent topics (100). About a third of tasks 1–2 are famous passages, the rest drawn at random (seed 20261011). |
 | **Conditions** | `baseline` (plain request) · `cautious` (adds "only quote if you are certain") · `lookup` (Bible and Constitution only: the model returns a reference, the system fetches the text). |
 | **Models** (v1.0) | Claude Sonnet 5.5, Claude Haiku 5.5 (Anthropic API); GPT-6 Luna, Gemini 3.1 Flash Lite, DeepSeek V4 Pro, Llama 4 Maverick (OpenRouter, each pinned to one host). Exact IDs, hosts and dates are on the leaderboard and in [`config/models.yaml`](config/models.yaml). |
-| **Settings** | One user message, JSON answer, no system prompt, no tools or web search, temperature 0 where the model accepts it, up to 2,000 output tokens, each model's default reasoning. A fixed 10% sample is run three more times to measure run-to-run stability. |
+| **Settings** | One user message, JSON answer, no system prompt, no tools or web search, temperature 0 where the model accepts it, up to 16,000 output tokens (8,192 for Llama 4 Maverick, its host's maximum), each model's default reasoning. A fixed 10% sample is run three more times to measure run-to-run stability. |
 
 ## How scoring works
 
@@ -105,8 +105,11 @@ ideally, `providers:` to pin one host), then run `quotebench run --estimate --mo
   OpenAI and Google appear through their small models. Open-weights models are served by a
   third-party host in fp8.
 - Requiring a JSON answer may change model behaviour. Some models (OpenAI GPT-6, Anthropic 5.x)
-  do not accept temperature 0. Models that think past the 2,000-token limit return no answer;
-  this is reported separately and in the *strict* column.
+  do not accept temperature 0.
+- The first run used a 2,000-token limit; the 451 answers it cut off were asked again at 16,000
+  ([`DECISIONS.md`](DECISIONS.md) D16). For models without temperature 0 the new answer is a
+  fresh sample, not a continuation. Answers still unfinished count as wrong in the ranking
+  (*strict*).
 - One run per question; run-to-run stability is measured on a 10% sample only. Results hold for
   the exact model IDs and dates recorded.
 - The split of wrong answers into kinds depends on similarity thresholds that were not

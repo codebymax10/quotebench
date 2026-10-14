@@ -1,43 +1,6 @@
 {
-  "fetched": "2026-10-11T15:35:53+00:00",
+  "fetched": "2026-10-14T17:30:24+00:00",
   "models": {
-    "openai/gpt-6-luna": {
-      "prompt": 1e-07,
-      "completion": 5e-07,
-      "supported_parameters": [
-        "include_reasoning",
-        "max_completion_tokens",
-        "max_tokens",
-        "reasoning",
-        "reasoning_effort",
-        "response_format",
-        "seed",
-        "structured_outputs",
-        "tool_choice",
-        "tools",
-        "verbosity"
-      ],
-      "context_length": 1050000
-    },
-    "google/gemini-3.1-flash-lite": {
-      "prompt": 2.5e-07,
-      "completion": 1.5e-06,
-      "supported_parameters": [
-        "include_reasoning",
-        "max_tokens",
-        "reasoning",
-        "reasoning_effort",
-        "response_format",
-        "seed",
-        "stop",
-        "structured_outputs",
-        "temperature",
-        "tool_choice",
-        "tools",
-        "top_p"
-      ],
-      "context_length": 1048576
-    },
     "deepseek/deepseek-v4-pro-0813": {
       "prompt": 6.6e-07,
       "completion": 1.98e-06,
@@ -51,29 +14,6 @@
         "presence_penalty",
         "reasoning",
         "reasoning_effort",
-        "repetition_penalty",
-        "response_format",
-        "seed",
-        "stop",
-        "structured_outputs",
-        "temperature",
-        "tool_choice",
-        "tools",
-        "top_k",
-        "top_logprobs",
-        "top_p"
-      ],
-      "context_length": 1048576
-    },
-    "meta-llama/llama-4-maverick": {
-      "prompt": 1.875e-07,
-      "completion": 6.525e-07,
-      "supported_parameters": [
-        "frequency_penalty",
-        "logit_bias",
-        "logprobs",
-        "max_tokens",
-        "presence_penalty",
         "repetition_penalty",
         "response_format",
         "seed",

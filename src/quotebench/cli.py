@@ -59,6 +59,7 @@ def run(
     models: Optional[list[str]] = typer.Option(None, "--models", help="Model IDs (default: all in config/models.yaml)."),
     conditions: Optional[list[str]] = typer.Option(None, "--conditions", help="baseline / cautious / lookup (default: all)."),
     retry_errors: bool = typer.Option(False, help="Retry calls that previously ended in ERROR."),
+    concurrency: Optional[int] = typer.Option(None, help="Parallel requests per model (default: config)."),
 ):
     """Query models through OpenRouter. Cached: re-running resumes and never pays twice."""
     import asyncio
@@ -67,22 +68,37 @@ def run(
 
     cfg = R.load_config()
     settings = cfg["settings"]
+    if concurrency:
+        settings["concurrency"] = concurrency
     model_ids = models or (cfg["dry_run_models"] if dry_run else [m["id"] for m in cfg["models"]])
     qids = cfg["dry_run_questions"] if dry_run else None
     jobs = R.build_jobs(model_ids, conditions, qids, repeats=not dry_run)
     pricing = R.fetch_pricing(model_ids)
     cache = R.Cache()
-    other = cache.max_tokens_used() - {settings["max_tokens"]}
-    if other:
-        raise typer.BadParameter(f"cache holds answers made with max_tokens={sorted(other)} but config says "
-                                 f"{settings['max_tokens']}; one benchmark must use one setting")
-    rows = R.estimate(jobs, pricing, settings, cache)
+    routes = R.model_routes(cfg)
+    limits = R.token_limits(routes)
+    for m, used in cache.max_tokens_used().items():
+        limit = limits.get(m, settings["max_tokens"])
+        if any(t > limit for t in used):
+            raise typer.BadParameter(f"cache holds {m} answers made with max_tokens={sorted(used)} but config "
+                                     f"says {limit}; one benchmark must use one setting")
+    redo = cache.cut_off_below(settings["max_tokens"], limits)
+    if redo:
+        typer.echo(f"{len(redo)} cached answers were cut off at a lower token limit; they will be asked again "
+                   f"with max_tokens={settings['max_tokens']} (DECISIONS D16)")
+        if not estimate:
+            out = R.ROOT / "results" / "archive" / "cut_off_at_lower_limit"
+            for p in R.archive_cut_off(cache, settings["max_tokens"], out, limits):
+                typer.echo(f"  old answers kept in {p.relative_to(R.ROOT)}")
+    rows = R.estimate(jobs, pricing, settings, cache, limits)
     typer.echo(f"{'model':38s} {'calls':>6s} {'expected':>9s} {'worst':>8s}  basis")
     for r in rows:
         typer.echo(f"{r['model']:38s} {r['calls']:6d} ${r['expected_cost']:8.2f} ${r['worst_cost']:7.2f}  {r['basis']}")
     typer.echo(f"{'TOTAL':38s} {sum(r['calls'] for r in rows):6d} ${sum(r['expected_cost'] for r in rows):8.2f} "
                f"${sum(r['worst_cost'] for r in rows):7.2f}")
-    typer.echo(f"already spent (all cached calls): ${cache.total_cost():.4f}")
+    archived = sum(R.archived_costs().values())
+    typer.echo(f"already spent: ${cache.total_cost() + archived:.4f} (cached answers ${cache.total_cost():.4f} "
+               f"+ replaced/archived answers ${archived:.4f})")
     if estimate:
         return
     if max_cost is None and not dry_run:
@@ -93,11 +109,11 @@ def run(
         if s["done"] % 50 == 0 or s["done"] == len(jobs):
             typer.echo(f"{s['done']} done, {s['errors']} errors, total spent ${s['spent']:.4f}")
 
-    routes = R.model_routes(cfg)
     needs_openrouter = any(routes[m]["api"] == "openrouter" for m in model_ids)
     api_key = R.load_api_key() if needs_openrouter else None
     stats = asyncio.run(R.run_jobs(jobs, cache, pricing, settings, api_key, cap,
-                                   retry_errors=retry_errors, progress=progress, routes=routes))
+                                   retry_errors=retry_errors, progress=progress, routes=routes,
+                                   spent_before=archived))
     typer.echo("")
     typer.echo(f"made {stats['done']} calls ({stats['errors']} errors), {stats['skipped_cached']} already cached, "
                f"total spend ${stats['spent_total']:.4f}")

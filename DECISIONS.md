@@ -162,3 +162,28 @@ does not. The headline number is then fully mechanical and needs no judgement th
 **Supersedes:** SPEC §8 headline "Exact rate = (EXACT + MINOR)" and the human-validation step
 (SPEC §8, milestone 5). The 0.97 / 0.80 thresholds now only shape the split of wrong answers,
 which is labelled approximate; state in the paper that this split was not human-validated.
+
+## D16 — Token limit 16,000; ranking by the strict score (2026-10-14)
+**Finding:** at the 2,000-token limit (D11), 451 of 11,520 answers stopped before the model
+answered: DeepSeek V4 Pro 281, GPT-6 Luna 144, Claude Sonnet 5.5 10, Claude Haiku 5.5 8, Llama 4
+Maverick 8, Gemini 3.1 Flash Lite 0. The "of answered" rate left those questions out, so DeepSeek
+ranked first (93.9 %) on 490 plain-prompt answers while its strict score was 76.7 %: the ranking
+depended on our limit, not on quoting.
+**Decision (Maksim):** raise `max_tokens` to 16,000 and ask every cut-off answer again; rank by
+*Correct (strict)* everywhere (README table, leaderboard, figures).
+**Method:** an answer that finished under 2,000 tokens is what the model would have written with
+a higher limit, so it was kept; only cut-off answers were asked again (`quotebench run` now does
+this whenever the limit is raised). The 451 old answers are kept in
+`results/archive/cut_off_at_lower_limit/`. Llama 4 Maverick's host (Novita) allows at most 8,192
+output tokens, so Llama uses 8,192 (`max_tokens` in `config/models.yaml`).
+**Result:** all re-asked answers finished except DeepSeek 38 (still thinking at 16,000 tokens)
+and Llama 1 (repeating one line until 8,192); these count as wrong in the strict score.
+**Caveats (state in the paper):** a re-asked answer is a new sample, not a continuation of the
+cut-off one: GPT-6 Luna and the Claude models do not accept temperature 0, and even at temperature
+0 Llama's host gave a different, short answer to 7 of its 8 re-asked questions. Re-asking only the
+cut-off questions therefore slightly favours short answers on those questions. GPT-6 Luna declined
+to quote ("cannot_quote") in 73 of its 144 re-asked answers.
+**Cost:** $5.66 more; total $17.33 of the $25 cap, including the replaced answers, which still
+count towards the cap and the reported spend. Novita bills DeepSeek at ~$2.97 per million output
+tokens, above OpenRouter's listed $1.98, so DeepSeek cost more than estimated.
+**Supersedes:** D11 (2,000 tokens).

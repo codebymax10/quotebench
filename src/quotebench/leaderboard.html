@@ -108,9 +108,10 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
 
   <section class="card" aria-labelledby="t-table">
     <h2 id="t-table">Leaderboard</h2>
-    <p class="sub"><em>Correct</em> = every word matches the named edition (punctuation and capitals ignored), as a share of
-      answered questions; 95% interval in grey. <em>Correct (strict)</em> also counts unreadable answers (a model that thinks
-      until the token limit and never answers) as wrong. The kinds of wrong answer are an approximate split. Click a column to sort.</p>
+    <p class="sub">Ranked by <em>Correct (strict)</em>: every word matches the named edition (punctuation and capitals ignored),
+      as a share of answered questions, with unreadable answers (a model that thinks until the token limit and never answers)
+      counted as wrong. <em>Correct</em> leaves unreadable answers out. 95% interval in grey. The kinds of wrong answer are an
+      approximate split. Click a column to sort.</p>
     <div class="table-wrap"><table id="board"></table></div>
   </section>
 
@@ -159,7 +160,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
       <li><strong>Texts:</strong> King James Bible, Shakespeare (Hamlet, Macbeth, Romeo and Juliet), U.S. Constitution, Pride and Prejudice, On the Origin of Species (1859). One fixed public-domain edition each, named in every prompt.</li>
       <li><strong>Tasks:</strong> quote a reference; quote the passage that comes next; give a quote on a theme with its location; trick questions where the right answer is "this does not exist".</li>
       <li><strong>Scoring:</strong> every prompt asks for the passage word for word, so a quote is <em>correct</em> only if every word matches the named edition letter for letter (punctuation and capitals ignored; a complete quote followed by extra text still counts). Wrong answers are sorted, approximately, into spelling only, incomplete, altered (word similarity &ge; <span id="lower"></span>), real passage from the wrong place, and made up.</li>
-      <li><strong>Settings:</strong> one user message, JSON answer, no tools or web search, temperature 0 where a model accepts it, up to 2,000 output tokens, each model's default reasoning.</li>
+      <li><strong>Settings:</strong> one user message, JSON answer, no tools or web search, temperature 0 where a model accepts it, up to 16,000 output tokens (Llama 4 Maverick: 8,192, its host's maximum), each model's default reasoning. Answers cut off at the earlier 2,000-token limit were asked again at 16,000.</li>
       <li><strong>Not measured:</strong> hallucination in general, paraphrase, or quotation from obscure or private documents. Results hold for the exact model IDs and dates below.</li>
     </ul>
     <div class="table-wrap"><table id="models"></table></div>
@@ -251,15 +252,15 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
     t.textContent = m.label + (done(m) ? "" : " *");
   }
   const order = () => [...models].sort((a, b) =>
-    (S.per_model[b.id][cond].correct.rate ?? 0) - (S.per_model[a.id][cond].correct.rate ?? 0));
+    (S.per_model[b.id][cond].correct_strict.rate ?? 0) - (S.per_model[a.id][cond].correct_strict.rate ?? 0));
   const partialNote = () => models.some(m => !done(m)) ? " * still running: partial data." : "";
   const range = arr => { const v = arr.filter(x => x != null); return v.length ? `${Math.min(...v)}–${Math.max(...v)}` : "0"; };
 
   // ---------- leaderboard table ----------
   const cols = [
     {key: "model", label: "Model"},
-    {key: "correct", label: "Correct", rate: true},
-    {key: "correct_strict", label: "Correct (strict)", rate: true, title: "Unreadable answers (e.g. the model thought until the 2,000-token limit) counted as wrong"},
+    {key: "correct_strict", label: "Correct (strict)", rate: true, title: "Ranking score: unreadable answers (e.g. the model thought until the token limit) count as wrong"},
+    {key: "correct", label: "Correct", rate: true, title: "Share of readable answers only"},
     {key: "spelling_only", label: "Spelling only", rate: true, title: "Right words, different spelling (e.g. choose / chuse)"},
     {key: "incomplete", label: "Incomplete", rate: true, title: "A correct but cut-short part of the passage"},
     {key: "altered", label: "Altered", rate: true},
@@ -267,7 +268,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
     {key: "abstained", label: "Didn't answer", rate: true}, {key: "trap_failure", label: "Fell for trap", rate: true},
     {key: "location_error", label: "Wrong location", rate: true}, {key: "unparseable", label: "Unreadable"},
   ];
-  let sortKey = "correct", sortDir = -1;
+  let sortKey = "correct_strict", sortDir = -1;
   function drawTable() {
     const rows = models.map(m => ({m, d: S.per_model[m.id][cond]}));
     rows.sort((a, b) => {
