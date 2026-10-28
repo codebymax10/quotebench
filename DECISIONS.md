@@ -187,3 +187,31 @@ to quote ("cannot_quote") in 73 of its 144 re-asked answers.
 count towards the cap and the reported spend. Novita bills DeepSeek at ~$2.97 per million output
 tokens, above OpenRouter's listed $1.98, so DeepSeek cost more than estimated.
 **Supersedes:** D11 (2,000 tokens).
+
+## D17 — Three more Claude models: Opus 5.5, Sonnet 4.6, Haiku 4.5 (2026-10-28)
+**Decision (Maksim):** add Claude Opus 5.5 (`claude-opus-5-5`, Anthropic's top tier) and two
+previous-generation models, Claude Sonnet 4.6 (`claude-sonnet-4-6`) and Claude Haiku 4.5
+(`claude-haiku-4-5`), through the Anthropic API on Maksim's API credit. This is the first step
+towards 10+ models spread from top to weak; OpenRouter models follow (planned: GPT-6.1 Sol,
+Grok 4.7, Mistral Large 4, Qwen 3.8 Flash, Llama 3.1 8B, Ministral 3B).
+**Why:** the older models show whether quoting improved between generations (Haiku 4.5 → 5.5,
+Sonnet 4.6 → 5.5); Opus 5.5 adds a top-priced model, which D8 left out.
+**Settings:** as for every model (SPEC §6, D16). No thinking parameter is sent, so each model
+uses its default: Opus 5.5 thinks (adaptive, default effort `medium`); Sonnet 4.6 and Haiku 4.5
+do not think unless asked. Sonnet 4.6 and Haiku 4.5 accept temperature, so they get
+temperature 0; the 1.x Anthropic SDK has no temperature argument, so it is sent in `extra_body`.
+The 5.x models do not accept temperature.
+**Fix during the run:** the first attempt sent no temperature to any Claude model. The 515
+answers Sonnet 4.6 and Haiku 4.5 had given at the default temperature ($0.28) are kept in
+`results/archive/claude4_without_temperature/` and were asked again at temperature 0. The first
+attempt also exceeded the account's limit on simultaneous requests (40 per model × 3); the
+failed calls were retried at 25 per model.
+**Consequence (state in the paper):** supersedes D8's note that top-priced tiers are left out:
+Claude Opus 5.5 is in; Claude Fable 5.1 and GPT-6 Astra are not. Anthropic now supplies 5 of
+the 9 models.
+**Result:** all 5,760 calls answered (0 errors, 0 cut off at 16,000 tokens, 0 refusals). Plain
+prompt, *Correct (strict)*: Opus 5.5 96.5 %, Sonnet 4.6 93.0 %, Haiku 4.5 69.6 %. Sonnet 4.6
+declined 33 % of real questions ("cannot quote"), so its rate rests on 401 answers; Opus 5.5
+declined 1 %, Sonnet 5.5 3 %.
+**Cost:** $14.49 (Opus 5.5 $11.06, Sonnet 4.6 $2.21, Haiku 4.5 $0.94, archived answers $0.28);
+project total $31.83.
