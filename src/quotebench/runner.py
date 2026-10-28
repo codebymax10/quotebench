@@ -144,15 +144,18 @@ def build_jobs(models: list[str], conditions: list[str] | None = None, question_
     return jobs
 
 
-def anthropic_body(job: Job, settings: dict, api_model: str) -> dict:
-    """Messages API request. No temperature (Claude 5.x models reject non-default sampling
-    values), no thinking parameter (each model's default adaptive thinking, SPEC §6), no
-    system prompt, no tools."""
-    return {
+def anthropic_body(job: Job, settings: dict, api_model: str, supported: list[str]) -> dict:
+    """Messages API request. Temperature only where the model accepts it (Claude 4.x yes, 5.x
+    no); the 1.x SDK has no temperature argument, so it goes in ``extra_body`` (DECISIONS D17).
+    No thinking parameter (each model's default reasoning, SPEC §6), no system prompt, no tools."""
+    body = {
         "model": api_model,
         "max_tokens": settings["max_tokens"],
         "messages": [{"role": "user", "content": job.prompt}],
     }
+    if "temperature" in supported:
+        body["extra_body"] = {"temperature": settings["temperature"]}
+    return body
 
 
 def request_body(job: Job, settings: dict, supported: list[str], providers: list[str] | None = None) -> dict:
@@ -458,7 +461,7 @@ async def run_jobs(jobs: list[Job], cache: Cache, pricing: dict, settings: dict,
                     stats["not_run_budget"] += 1
                     return
                 if route["api"] == "anthropic":
-                    body = anthropic_body(job, s, route["api_model"])
+                    body = anthropic_body(job, s, route["api_model"], price["supported_parameters"])
                     rec = await call_one_anthropic(anthropic_client, job, body, price)
                 else:
                     body = request_body(job, s, price["supported_parameters"], route.get("providers"))

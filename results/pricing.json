@@ -1,32 +1,63 @@
 {
-  "fetched": "2026-10-14T17:30:24+00:00",
+  "fetched": "2026-10-28T14:14:57+00:00",
   "models": {
-    "deepseek/deepseek-v4-pro-0813": {
-      "prompt": 6.6e-07,
-      "completion": 1.98e-06,
+    "anthropic/claude-opus-5.5": {
+      "prompt": 4e-06,
+      "completion": 2e-05,
       "supported_parameters": [
-        "frequency_penalty",
         "include_reasoning",
-        "logit_bias",
-        "logprobs",
+        "max_completion_tokens",
         "max_tokens",
-        "min_p",
-        "presence_penalty",
         "reasoning",
         "reasoning_effort",
-        "repetition_penalty",
         "response_format",
-        "seed",
+        "stop",
+        "structured_outputs",
+        "tool_choice",
+        "tools",
+        "verbosity"
+      ],
+      "context_length": 1000000
+    },
+    "anthropic/claude-sonnet-4.6": {
+      "prompt": 3e-06,
+      "completion": 1.5e-05,
+      "supported_parameters": [
+        "include_reasoning",
+        "max_completion_tokens",
+        "max_tokens",
+        "reasoning",
+        "reasoning_effort",
+        "response_format",
         "stop",
         "structured_outputs",
         "temperature",
         "tool_choice",
         "tools",
         "top_k",
-        "top_logprobs",
+        "top_p",
+        "verbosity"
+      ],
+      "context_length": 1000000
+    },
+    "anthropic/claude-haiku-4.5": {
+      "prompt": 1e-06,
+      "completion": 5e-06,
+      "supported_parameters": [
+        "include_reasoning",
+        "max_completion_tokens",
+        "max_tokens",
+        "reasoning",
+        "response_format",
+        "stop",
+        "structured_outputs",
+        "temperature",
+        "tool_choice",
+        "tools",
+        "top_k",
         "top_p"
       ],
-      "context_length": 1048576
+      "context_length": 200000
     }
   }
 }

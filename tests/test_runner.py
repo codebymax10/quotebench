@@ -202,6 +202,16 @@ def test_anthropic_route(cache):
     assert json.loads(rec["request"])["api"] == "anthropic"
 
 
+def test_anthropic_temperature_where_accepted(cache):
+    # Claude 4.x accepts temperature; the 1.x SDK only sends it through extra_body
+    fake_an = FakeAnthropic()
+    routes = {"fake/with-temp": {"api": "anthropic", "api_model": "claude-fake-4"}}
+    jobs = jobs_for("fake/with-temp", 1)
+    asyncio.run(R.run_jobs(jobs, cache, PRICING, SETTINGS, None, 10.0, routes=routes, anthropic_client=fake_an))
+    assert fake_an.calls[0]["extra_body"] == {"temperature": 0}
+    assert json.loads(cache.get(jobs[0].key)["request"])["extra_body"] == {"temperature": 0}
+
+
 def test_anthropic_errors_are_recorded(cache):
     import anthropic
     import httpx2
