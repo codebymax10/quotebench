@@ -1,4 +1,4 @@
-# Hand-written inputs (Maksim edits these)
+# Curated inputs (AI-drafted, DECISIONS D6 and D18)
 
 The build script (`quotebench questions`) reads these CSVs and merges them into
 `data/questions.jsonl`. Edit them in any spreadsheet app; keep the header row.
@@ -34,7 +34,7 @@ The script checks every misattribution against the source and rejects any that a
 | `note` | optional: where the saying really comes from / why it's a trap |
 | `hand_checked` | filled in (during AI-assisted drafting, DECISIONS D18) for a trap the script could not verify (a near miss, or a reference/topic it cannot parse); starts with `yes:` and gives the reason |
 
-Format examples (placeholders — write your own):
+Format examples:
 
 ```
 text_id,trap_type,content,note

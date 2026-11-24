@@ -15,6 +15,10 @@ build/
 # run cache (raw responses are kept in results/raw; the sqlite cache is local)
 results/cache.sqlite*
 
+# written by `quotebench validate export` (no labelling in v1.0, DECISIONS D15)
+validation/labeling_sheet.csv
+validation/sample_key.csv
+
 .DS_Store
 
 # run logs

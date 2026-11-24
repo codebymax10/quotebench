@@ -18,7 +18,8 @@ quotecheck --source contract.txt --input answer.txt     # "-" reads standard inp
 ```
 
 Exit code: 0 every checked quote is exact (also if there was nothing to check), 1 at least one is
-not, 2 usage error (bad option, unreadable or empty source).
+not, 2 usage error (bad option, unreadable or empty source), 141 the program reading the output
+closed it early (`| head`): no verdict.
 
 ## Labels
 
@@ -32,12 +33,23 @@ Only `EXACT` is a correct quotation (DECISIONS.md, D15). It does not depend on a
 | `FABRICATED` | Nothing similar enough in the source (below 0.80). A heavily reworded real passage, or a quote of another document, also lands here. |
 
 There is no requested passage, so the benchmark's `WRONG_PLACE`, `PARTIAL` and similar do not apply.
+The similarity is 1 only for `EXACT`.
 
-Flags: `ELLIPSIS`, `BRACKETS` (exact, apart from words the quote itself marks as left out or
-[inserted]); `NUMBERS_DIFFER` (only numbers are wrong); `OUT_OF_ORDER`, `FAR_APART`,
-`TOO_FRAGMENTED` (problems with the pieces around an ellipsis or bracket); `UNCLOSED` (no closing
-mark; checked to the end of the paragraph); `ATTRIBUTION_IGNORED` (a last line "— Author" of a
-block quote was not checked); `SHORT_QUOTE` (under 6 words, from the benchmark).
+| Flag | Meaning |
+|---|---|
+| `ELLIPSIS` | Exact, with words left out where the quote says "...". |
+| `BRACKETS` | Something the quote puts in brackets was not compared: [inserted] words, or notes such as [12], [sic], [emphasis added], [^1], 【3†source】. |
+| `SHORT_QUOTE` | Under 6 words: so few that a match may be chance. |
+| `NUMBERS_DIFFER` | All words match; only numbers are wrong. |
+| `OUT_OF_ORDER`, `FAR_APART`, `TOO_FRAGMENTED` | Problems with the pieces around an ellipsis or bracket. |
+| `UNCLOSED` | No closing mark; checked to the end of the paragraph. |
+| `ATTRIBUTION_IGNORED` | A last line "— Author" of a block quote was not checked. |
+
+**An `EXACT` quote with a flag needs reading.** The words that were compared are exact, but
+the flag says that something else was not compared or that the match proves little. The part that
+was not compared can reverse the meaning: "shall [not] sublet" and "shall [emphasis not at all] sublet"
+are `EXACT` for a source that says "shall sublet", and "shall ... sublet" is for one that says "shall
+not sublet". `EXACT` without flags means that every word of the quote was found, in one run.
 
 ## Rules
 
@@ -45,11 +57,18 @@ block quote was not checked); `SHORT_QUOTE` (under 6 words, from the benchmark).
   outermost marks count. Quotes under `min_words` are not checked, only counted (`report.skipped`).
 - **Positions:** `source.text[q.source_start:q.source_end] == q.best_match`, unless the quote was
   checked in parts (`q.parts`, each with its own position). `q.start:q.end` is the place in the
-  checked text. If a passage occurs several times, the first one is given.
+  checked text. If a passage occurs several times, the first one is given. Positions count the
+  characters of the text exactly as given: line ends are not translated (`\r\n` is two characters).
+  `Source.from_file` and the command line decode UTF-8, drop a byte order mark at the start, and
+  change nothing else; `--json` gives the same positions as the library. (Python's `open(...).read()`
+  translates line ends; use `newline=""` to get the same positions.)
 - **Ellipsis:** each part must be verbatim and in order. Parts under 5 words must lie within 50
-  words of their neighbour.
+  words of their neighbour. A quote in more than 100 pieces is checked as one run of words
+  (`TOO_FRAGMENTED`).
 - **Brackets:** a [bracketed] insertion may stand for up to 6 source words; `[T]he` is "The";
-  `[12]` and `[sic]` are dropped.
+  notes such as `[12]`, `[sic]`, `[emphasis added]`, `[^1]` and `【3†source】` are dropped, and of a link
+  `[text](address)` only the text counts. Whenever something is dropped the flag is `BRACKETS`
+  (not for the address of a link, and not if the source has the same brackets).
 - **Numbers:** compared by default, unlike in the benchmark, which drops digits because they are
   verse numbers there. `compare_numbers=False` / `--ignore-numbers` gives the benchmark's behaviour,
   for texts with verse, page or footnote numbers.

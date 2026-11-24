@@ -1,0 +1,96 @@
+{
+ "commit": "cc1d009",
+ "what": "Plain prompt, run 0, questions with a real answer: counts per model under the scoring before DECISIONS D19 (n questions, ok = correct, ans = answered, wrong, abst = declined, unf = unfinished, fab = made up, err = host errors).",
+ "models": {
+  "anthropic/claude-haiku-4.5": {
+   "n": 600,
+   "ok": 344,
+   "ans": 494,
+   "wrong": 150,
+   "abst": 106,
+   "unf": 0,
+   "fab": 63,
+   "err": 0
+  },
+  "anthropic/claude-haiku-5.5": {
+   "n": 600,
+   "ok": 418,
+   "ans": 501,
+   "wrong": 83,
+   "abst": 99,
+   "unf": 0,
+   "fab": 15,
+   "err": 0
+  },
+  "anthropic/claude-opus-5.5": {
+   "n": 600,
+   "ok": 571,
+   "ans": 592,
+   "wrong": 21,
+   "abst": 8,
+   "unf": 0,
+   "fab": 2,
+   "err": 0
+  },
+  "anthropic/claude-sonnet-4.6": {
+   "n": 600,
+   "ok": 373,
+   "ans": 401,
+   "wrong": 28,
+   "abst": 199,
+   "unf": 0,
+   "fab": 11,
+   "err": 0
+  },
+  "anthropic/claude-sonnet-5.5": {
+   "n": 600,
+   "ok": 534,
+   "ans": 582,
+   "wrong": 48,
+   "abst": 18,
+   "unf": 0,
+   "fab": 6,
+   "err": 0
+  },
+  "deepseek/deepseek-v4-pro-0813": {
+   "n": 600,
+   "ok": 500,
+   "ans": 582,
+   "wrong": 82,
+   "abst": 0,
+   "unf": 18,
+   "fab": 31,
+   "err": 0
+  },
+  "google/gemini-3.1-flash-lite": {
+   "n": 600,
+   "ok": 453,
+   "ans": 595,
+   "wrong": 142,
+   "abst": 4,
+   "unf": 1,
+   "fab": 103,
+   "err": 0
+  },
+  "meta-llama/llama-4-maverick": {
+   "n": 600,
+   "ok": 125,
+   "ans": 585,
+   "wrong": 460,
+   "abst": 15,
+   "unf": 0,
+   "fab": 380,
+   "err": 0
+  },
+  "openai/gpt-6-luna": {
+   "n": 600,
+   "ok": 477,
+   "ans": 564,
+   "wrong": 87,
+   "abst": 36,
+   "unf": 0,
+   "fab": 41,
+   "err": 0
+  }
+ }
+}

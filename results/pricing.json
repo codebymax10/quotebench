@@ -1,4 +1,5 @@
 {
+  "note": "OpenRouter list prices and parameters fetched for the most recent paid run, for that run's models only; for the record. The cost of each call in results/ was recorded when it was made (Anthropic API: tokens times the list price fetched at that time).",
   "fetched": "2026-10-28T14:14:57+00:00",
   "models": {
     "anthropic/claude-opus-5.5": {

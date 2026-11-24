@@ -27,7 +27,7 @@ import httpx
 import yaml
 
 from .questions import load_questions, render_prompt
-from .sources import ROOT
+from .sources import IN_CHECKOUT, NOT_A_CHECKOUT, ROOT
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODELS_URL = "https://openrouter.ai/api/v1/models"
@@ -78,8 +78,13 @@ def token_limits(routes: dict[str, dict]) -> dict[str, int]:
     return {m: r["max_tokens"] for m, r in routes.items() if r.get("max_tokens")}
 
 
+PRICING_NOTE = ("OpenRouter list prices and parameters fetched for the most recent paid run, for that run's models only; "
+                "for the record. The cost of each call in results/ was recorded when it was made (Anthropic API: tokens times "
+                "the list price fetched at that time).")
+
+
 def fetch_pricing(model_ids: list[str], client: httpx.Client | None = None) -> dict:
-    """Live prices and supported parameters for ``model_ids``; saved to results/pricing.json."""
+    """Live prices and supported parameters for ``model_ids`` (``save_pricing`` writes them down)."""
     close = client is None
     client = client or httpx.Client(timeout=60)
     try:
@@ -89,7 +94,7 @@ def fetch_pricing(model_ids: list[str], client: httpx.Client | None = None) -> d
     finally:
         if close:
             client.close()
-    out = {"fetched": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), "models": {}}
+    out = {"note": PRICING_NOTE, "fetched": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), "models": {}}
     for mid in model_ids:
         if mid not in data:
             raise RuntimeError(f"model {mid!r} is not listed by OpenRouter")
@@ -100,9 +105,13 @@ def fetch_pricing(model_ids: list[str], client: httpx.Client | None = None) -> d
             "supported_parameters": m.get("supported_parameters") or [],
             "context_length": m.get("context_length"),
         }
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    PRICING_PATH.write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")
     return out
+
+
+def save_pricing(pricing: dict) -> None:
+    """Keep the prices a paid run used in results/pricing.json (never called for an estimate)."""
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    PRICING_PATH.write_text(json.dumps(pricing, indent=2) + "\n", encoding="utf-8")
 
 
 # --------------------------------------------------------------------------------------
@@ -195,34 +204,59 @@ CREATE TABLE IF NOT EXISTS calls (
 
 
 class Cache:
-    def __init__(self, path: Path = CACHE_PATH):
+    """The local SQLite copy of every call.
+
+    The benchmark's own cache (``CACHE_PATH``) is completed from the published results/raw/*.jsonl
+    each time it is opened: a fresh clone, an interrupted import or a cache older than the results
+    just pulled gets the calls it lacks. A call that is in the cache is never changed or removed, so
+    answers that were paid for and not yet exported stay; ``differing`` counts those that are not
+    the published ones.
+    """
+
+    def __init__(self, path: Path = CACHE_PATH, raw_dir: Path | None = None):
+        if path == CACHE_PATH:
+            if not IN_CHECKOUT:
+                raise RuntimeError(NOT_A_CHECKOUT)
+            raw_dir = raw_dir or RAW_DIR
         path.parent.mkdir(parents=True, exist_ok=True)
         self.db = sqlite3.connect(path)
         self.db.row_factory = sqlite3.Row
         self.db.execute(SCHEMA)
         self.db.commit()
-        if path == CACHE_PATH and self.db.execute("SELECT COUNT(*) FROM calls").fetchone()[0] == 0:
-            self.import_raw()
+        self.imported = self.differing = 0
+        if raw_dir is not None:
+            self.import_raw(raw_dir)
 
-    def import_raw(self, raw_dir: Path = RAW_DIR) -> int:
-        """Fill an empty cache from the published results/raw/*.jsonl (fresh clone)."""
-        n = 0
+    def import_raw(self, raw_dir: Path) -> int:
+        """Add the published calls that the cache lacks: all of them or, if interrupted, none."""
+        have = {k: (t, c) for k, t, c in self.db.execute("SELECT key, timestamp, content FROM calls")}
+        missing, self.differing = [], 0
         for f in sorted(raw_dir.glob("*.jsonl")) if raw_dir.exists() else []:
-            for line in f.read_text(encoding="utf-8").splitlines():
-                rec = json.loads(line)
-                for k in ("request", "response"):
-                    rec[k] = json.dumps(rec[k], ensure_ascii=False) if rec[k] is not None else None
-                self.put(rec)
-                n += 1
-        return n
+            with f.open(encoding="utf-8") as lines:
+                for line in lines:
+                    rec = json.loads(line)
+                    if rec["key"] not in have:
+                        missing.append(rec)
+                    elif have[rec["key"]] != (rec["timestamp"], rec["content"]):
+                        self.differing += 1
+        with self.db:  # one transaction: rolled back as a whole if anything stops it
+            for rec in missing:
+                self._insert("INSERT OR IGNORE", {
+                    **rec, **{k: json.dumps(rec[k], ensure_ascii=False) if rec[k] is not None else None
+                              for k in ("request", "response")}})
+        self.imported = len(missing)
+        return len(missing)
+
+    def _insert(self, how: str, rec: dict) -> None:
+        cols = ", ".join(rec)
+        marks = ", ".join("?" for _ in rec)
+        self.db.execute(f"{how} INTO calls ({cols}) VALUES ({marks})", list(rec.values()))
 
     def get(self, key: str) -> sqlite3.Row | None:
         return self.db.execute("SELECT * FROM calls WHERE key = ?", (key,)).fetchone()
 
     def put(self, rec: dict) -> None:
-        cols = ", ".join(rec)
-        marks = ", ".join("?" for _ in rec)
-        self.db.execute(f"INSERT OR REPLACE INTO calls ({cols}) VALUES ({marks})", list(rec.values()))
+        self._insert("INSERT OR REPLACE", rec)
         self.db.commit()
 
     def max_tokens_used(self) -> dict[str, set[int]]:

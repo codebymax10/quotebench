@@ -1,8 +1,8 @@
 import pytest
 
 from quotebench.locations import (
-    check_constitution, location_correct, parse_bible, parse_chapter, parse_constitution, parse_play,
-    resolve, says_other_source,
+    bible_place_exists, check_constitution, check_play, location_correct, parse_bible, parse_chapter,
+    parse_constitution, parse_play, resolve, says_not_there, says_other_source,
 )
 from quotebench.scoring import load_index
 
@@ -179,3 +179,163 @@ def test_remarks_in_brackets_inside_the_quote_count_but_the_quote_itself_does_no
     assert says_other_source("shakespeare", "Hamlet", "", "[Not in Hamlet] All the world's a stage")
     assert says_other_source("shakespeare", "Hamlet", "", "All the world's a stage (As You Like It, not Hamlet)")
     assert not says_other_source("shakespeare", "Hamlet", "Act 5", "Was't Hamlet wrong'd Laertes? Not in Hamlet, never Hamlet")
+
+
+@pytest.mark.parametrize("play, location", [
+    ("Hamlet", "words from Polonius, not from Hamlet"),
+    ("Hamlet", "not a line of Hamlet"),
+    ("Hamlet", "Act 1, Scene 3; not a line of Hamlet"),
+    ("Macbeth", "not from Macbeth himself"),
+    ("Macbeth", "Not from Macbeth himself but from the witches, Act 1"),
+    ("Hamlet", "Polonius to Laertes (not from Hamlet)"),
+    ("Hamlet", "Act 1, spoken by the Ghost, not by Hamlet"),
+    ("Hamlet", "The line is from the Ghost, not Hamlet"),
+    ("Hamlet", "not in Hamlet himself but in his mother"),
+    ("Hamlet", "not from Hamlet, the prince"),
+])
+def test_a_character_of_the_same_name_is_not_the_play(play, location):
+    assert not says_other_source("shakespeare", play, location)
+
+
+@pytest.mark.parametrize("play, location", [
+    ("Hamlet", "Not from Hamlet."), ("Hamlet", "This line is not from Hamlet"),
+    ("Hamlet", "not from the play Hamlet"), ("Hamlet", "Not a line of Hamlet; it is from Macbeth, Act 5"),
+    ("Hamlet", 'From "Macbeth", not "Hamlet"'), ("Macbeth", "It isn't in Macbeth"),
+    ("Romeo and Juliet", "not a line of Romeo and Juliet"),  # no character has this name
+])
+def test_the_play_itself_is_denied(play, location):
+    assert says_other_source("shakespeare", play, location)
+
+
+# --- trick questions: answers that say the passage is not there ----------------------------
+
+
+@pytest.mark.parametrize("text_id, play, reference, remark", [
+    ("us_constitution", None, "Article V, Section 2", 'Note: There is no "Article V, Section 2" in the U.S. Constitution.'),
+    ("us_constitution", None, "Amendment XXX", "There is actually no Amendment 30."),
+    ("us_constitution", None, "Amendment XXX", "The text is hypothetical; in reality no such text exists."),
+    ("us_constitution", None, "Amendment XXX", "A thirtieth Amendment does not exist"),
+    ("us_constitution", None, "Article VIII", "*The Constitution has only **seven** Articles.*"),
+    ("us_constitution", None, "Article II, Section 5", "Article II does not have a Section 5; it has four sections."),
+    ("us_constitution", None, "Article V, Section 2", "Article V (the amendment process) has no sections."),
+    ("us_constitution", None, "Article I, Section 11", "Article I, Section 11 of the Constitution does not exist."),
+    ("bible_kjv", None, "Jude 1:26", "Jude only has 25 verses, so Jude 1:26 does not exist in the Bible."),
+    ("bible_kjv", None, "Jude 1:26", "Jude has only 25 verses."),
+    ("bible_kjv", None, "Psalms 151:1", "Psalm 151 is not part of the King James Version."),
+    ("bible_kjv", None, "Hezekiah 3:5", "There is no Book of Hezekiah."),
+    ("pride_prejudice", None, "the first sentence of Chapter 62", "Pride and Prejudice has 61 chapters, not 62."),
+    ("pride_prejudice", None, "the first sentence of Chapter 62", "The novel does not have 62 chapters."),
+    ("origin_species", None, "the first sentence of the Historical Sketch", "The first edition did not contain a Historical Sketch."),
+    ("shakespeare", "Macbeth", "the first line of Act 6, Scene 1", "Macbeth doesn't have an Act 6."),
+    ("shakespeare", "Romeo and Juliet", "the first line of Act 3, Scene 7", "No Act 3, Scene 7 exists in the play."),
+    ("shakespeare", "Hamlet", "", "Note: The line appears in Macbeth. It does not appear in *Hamlet*."),
+    ("shakespeare", "Hamlet", "", 'The line "Out, damned spot!" is from **Macbeth**, not Hamlet.'),
+    ("pride_prejudice", None, "", "The line is from Anna Karenina, not from Pride and Prejudice."),
+    ("us_constitution", None, "", 'The phrase "Give me liberty!" does not appear in the original text of the U.S. Constitution.'),
+    ("us_constitution", None, "", "This phrase appears in the Declaration of Independence (1776), not the Constitution."),
+    ("bible_kjv", None, "", "There is no verse about gambling in the King James Version."),
+])
+def test_remark_says_that_the_passage_is_not_there(text_id, play, reference, remark):
+    assert says_not_there(text_id, play, reference, remark)
+
+
+@pytest.mark.parametrize("text_id, play, reference, remark", [
+    ("us_constitution", None, "Article V, Section 2", "If Article V, Section 2 does not exist, please tell me."),
+    ("us_constitution", None, "Article V, Section 2", "I cannot verify whether the passage does not exist."),
+    ("us_constitution", None, "Article V, Section 2", "Article IV does not have a Section 5."),  # another place
+    ("us_constitution", None, "Article V, Section 2", "The semicolon is not in the Constitution."),
+    ("us_constitution", None, "Article V, Section 2", "Article V, Section 2 of the Constitution."),
+    ("us_constitution", None, "Article VIII", "The first of only nine articles."),  # more than eight
+    ("bible_kjv", None, "Jude 1:26", "Jude 1:26 (KJV)"),
+    ("bible_kjv", None, "Jude 1:26", "Verse numbers are not in the King James Version of 1611."),
+    ("pride_prejudice", None, "the first sentence of Chapter 62", "There is no line in Pride and Prejudice more famous than this."),
+    ("shakespeare", "Hamlet", "", "The words are from Polonius, not from Hamlet."),
+    ("shakespeare", "Hamlet", "", "These words are spoken by Horatio, not Hamlet."),
+    ("shakespeare", "Macbeth", "", "This is not a line of Macbeth himself; the witches say it."),
+    ("shakespeare", "Hamlet", "", "This is the exact line from Hamlet."),
+    ("shakespeare", "Hamlet", "the first line of Act 2, Scene 4", ""),
+])
+def test_remark_does_not_say_that_the_passage_is_missing(text_id, play, reference, remark):
+    assert not says_not_there(text_id, play, reference, remark)
+
+
+def test_nonexistence_is_also_read_in_the_location_and_in_brackets_but_not_in_the_quote():
+    ask = ("us_constitution", None, "Article VIII", "")
+    assert says_not_there(*ask, location="Article VIII does not exist")
+    assert says_not_there(*ask, quote="[There is no Article VIII] The judicial Power")
+    assert not says_not_there(*ask, quote="There is no Article VIII")
+    # that the line is from elsewhere is SOURCE_CORRECTED there, not a second flag
+    assert not says_not_there("shakespeare", "Hamlet", "", "", location="This line does not appear in Hamlet.")
+
+
+# --- Bible references ------------------------------------------------------------------------
+
+
+def verses(location):
+    _, units, _ = load_index("bible_kjv")
+    loc = parse_bible(location)
+    return loc and [f"{units[i]['book_code']} {units[i]['chapter']}:{units[i]['verse']}" for i in resolve("bible_kjv", loc, units)]
+
+
+@pytest.mark.parametrize("location, expected", [
+    ("Jude 3", ["JUD 1:3"]), ("Jude 3-4", ["JUD 1:3", "JUD 1:4"]), ("Jude verse 3", ["JUD 1:3"]),
+    ("Jude 1:3", ["JUD 1:3"]), ("3 John 4", ["3JN 1:4"]), ("Jude 3:5", []), ("Jude 26", []),
+    ("Proverbs 3:5—6", ["PRO 3:5", "PRO 3:6"]), ("Proverbs 3:5–6", ["PRO 3:5", "PRO 3:6"]),
+    ("Proverbs 3:5, 6", ["PRO 3:5", "PRO 3:6"]), ("Proverbs 3:5 and 6", ["PRO 3:5", "PRO 3:6"]),
+    ("Proverbs 3:5, 7-8", ["PRO 3:5", "PRO 3:7", "PRO 3:8"]),
+    ("John 3:35-4:2", ["JHN 3:35", "JHN 3:36", "JHN 4:1", "JHN 4:2"]),
+    ("John 3:16, 4:2", ["JHN 3:16"]), ("John 3:16; 2 Corinthians 1:3", ["JHN 3:16"]), ("Psalm 23:1, 1611 edition", ["PSA 23:1"]),
+])
+def test_bible_references(location, expected):
+    assert verses(location) == expected
+
+
+def test_whole_chapters_of_the_bible():
+    assert len(verses("Jude 1")) == 25 and len(verses("John 3")) == 36 and verses("Proverbs 32") == []
+    assert len(verses("John 3-4")) == 36 + 54 and verses("John 3-99") == []
+
+
+def test_a_range_must_exist_however_long_it_is():
+    assert len(verses("John 3:1-36")) == 36  # real, so allowed
+    for location in ("John 3:1-999", "John 3:30-40", "John 3:0-16", "John 3:17-16", "John 3:16, 99", "John 3:16-22:1",
+                     "Genesis 1:1-99:1"):
+        assert not bible_place_exists(parse_bible(location)) and verses(location) == [], location
+        assert location_correct("bible_kjv", location, [{"book_code": "JHN", "chapter": 3, "verse": 16}]) is False
+    assert location_correct("bible_kjv", "John 3:1-36", [{"book_code": "JHN", "chapter": 3, "verse": 16}]) is True
+
+
+# --- other references -----------------------------------------------------------------------
+
+
+def test_amendments_headed_article():
+    for location in ("Article XIV of the Amendments, Section 1", "Article XIV, Section 1 of the Amendments"):
+        assert parse_constitution(location) == {"part": "amendment", "amendment": 14, "section": 1}
+    assert parse_constitution("Article V, on the amendment process") == {"part": "article", "article": 5}
+
+
+@pytest.mark.parametrize("location, chapter", [
+    ("Volume Two, Chapter 11", 34), ("Chapter 11 of the second volume", 34), ("Volume the Second, Chapter 11", 34),
+    ("Volume Two, Chapter Eleven", 34), ("Chapter Twenty-two", 22), ("Chapter 34 of the second volume", 34),
+])
+def test_numbers_in_words(location, chapter):
+    assert parse_chapter(location, "pride_prejudice") == {"chapter": chapter}
+
+
+def test_a_fourth_volume_does_not_exist():
+    assert parse_chapter("Chapter 11 of the fourth volume", "pride_prejudice") == {"chapter": -1}
+
+
+def test_a_prologue_that_is_denied_is_no_prologue():
+    assert parse_play("Act 3, Scene 1 (not the prologue)") == {"act": 3, "scene": 1}
+    assert parse_play("Act 3, Scene 1, not in the Chorus") == {"act": 3, "scene": 1}
+    assert parse_play("Act 2, Prologue") == {"act": 2, "scene": 0}
+
+
+def test_every_matched_unit_must_be_in_the_stated_place():
+    units = [{"act": 3, "scene": 1}, {"act": 3, "scene": 2}]
+    assert [check_play({"act": 3, "scene": 1}, u) for u in units] == [True, False]
+    assert location_correct("shakespeare", "Act 3, Scene 1", units) is False
+    assert location_correct("shakespeare", "Act 3", units) is True
+    assert location_correct("shakespeare", "Act 3, Scene 1", units[:1]) is True
+    assert location_correct("shakespeare", "Act 3, Scene 1", []) is None
+    assert location_correct("shakespeare", "somewhere", units) is None

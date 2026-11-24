@@ -1,7 +1,7 @@
 {
  "benchmark": "QuoteBench",
  "version": "v1.0",
- "generated": "2026-11-24T11:14:58+00:00",
+ "generated": "2026-11-24T15:23:16+00:00",
  "status": "released",
  "n_questions": 700,
  "expected_calls_per_model": 1920,
@@ -23,6 +23,10 @@
    "role": "flagship",
    "note": null,
    "api": "anthropic",
+   "api_model": "claude-sonnet-5-5",
+   "served_models": [
+    "claude-sonnet-5-5"
+   ],
    "hosts": [
     "Anthropic"
    ],
@@ -41,6 +45,10 @@
    "role": "small",
    "note": null,
    "api": "anthropic",
+   "api_model": "claude-haiku-5-5",
+   "served_models": [
+    "claude-haiku-5-5"
+   ],
    "hosts": [
     "Anthropic"
    ],
@@ -59,6 +67,10 @@
    "role": "top-tier",
    "note": null,
    "api": "anthropic",
+   "api_model": "claude-opus-5-5",
+   "served_models": [
+    "claude-opus-5-5"
+   ],
    "hosts": [
     "Anthropic"
    ],
@@ -77,6 +89,10 @@
    "role": "previous-generation",
    "note": null,
    "api": "anthropic",
+   "api_model": "claude-sonnet-4-6",
+   "served_models": [
+    "claude-sonnet-4-6"
+   ],
    "hosts": [
     "Anthropic"
    ],
@@ -95,6 +111,10 @@
    "role": "previous-generation",
    "note": null,
    "api": "anthropic",
+   "api_model": "claude-haiku-4-5",
+   "served_models": [
+    "claude-haiku-4-5-20251001"
+   ],
    "hosts": [
     "Anthropic"
    ],
@@ -113,6 +133,10 @@
    "role": "small",
    "note": null,
    "api": "openrouter",
+   "api_model": "openai/gpt-6-luna",
+   "served_models": [
+    "openai/gpt-6-luna"
+   ],
    "hosts": [
     "OpenAI"
    ],
@@ -131,6 +155,10 @@
    "role": "small",
    "note": "model used by Selah",
    "api": "openrouter",
+   "api_model": "google/gemini-3.1-flash-lite",
+   "served_models": [
+    "google/gemini-3.1-flash-lite"
+   ],
    "hosts": [
     "Google",
     "Google AI Studio"
@@ -150,6 +178,10 @@
    "role": "open-weights",
    "note": null,
    "api": "openrouter",
+   "api_model": "deepseek/deepseek-v4-pro-0813",
+   "served_models": [
+    "deepseek/deepseek-v4-pro-0813"
+   ],
    "hosts": [
     "Novita"
    ],
@@ -168,6 +200,10 @@
    "role": "open-weights",
    "note": null,
    "api": "openrouter",
+   "api_model": "meta-llama/llama-4-maverick",
+   "served_models": [
+    "meta-llama/llama-4-maverick"
+   ],
    "hosts": [
     "Novita"
    ],
@@ -253,7 +289,21 @@
      "lo": 0.04109296948581091,
      "hi": 0.14998266879403072
     },
-    "trap_presented": {
+    "trap_uncorrected": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
+    },
+    "trap_source_corrected": {
+     "k": 8,
+     "n": 100,
+     "rate": 0.08,
+     "lo": 0.04109296948581091,
+     "hi": 0.14998266879403072
+    },
+    "trap_self_retracted": {
      "k": 0,
      "n": 100,
      "rate": 0.0,
@@ -342,7 +392,21 @@
        "lo": 0.0,
        "hi": 0.113517091390478
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 30,
        "rate": 0.0,
@@ -431,7 +495,21 @@
        "lo": 0.0,
        "hi": 0.20388926630434784
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 15,
        "rate": 0.0,
@@ -520,7 +598,21 @@
        "lo": 0.0,
        "hi": 0.20388926630434784
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 15,
        "rate": 0.0,
@@ -609,7 +701,21 @@
        "lo": 0.21880396741419272,
        "hi": 0.613422057684794
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 8,
+       "n": 20,
+       "rate": 0.4,
+       "lo": 0.21880396741419272,
+       "hi": 0.613422057684794
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -698,7 +804,21 @@
        "lo": 0.0,
        "hi": 0.16113012549493322
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -789,7 +909,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -878,7 +1012,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -967,7 +1115,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -1056,7 +1218,21 @@
        "lo": 0.04109296948581091,
        "hi": 0.14998266879403072
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
+      },
+      "trap_source_corrected": {
+       "k": 8,
+       "n": 100,
+       "rate": 0.08,
+       "lo": 0.04109296948581091,
+       "hi": 0.14998266879403072
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 100,
        "rate": 0.0,
@@ -1147,7 +1323,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -1236,7 +1426,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -1327,7 +1531,21 @@
      "lo": 0.0,
      "hi": 0.03699480747600191
     },
-    "trap_presented": {
+    "trap_uncorrected": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
+    },
+    "trap_source_corrected": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
+    },
+    "trap_self_retracted": {
      "k": 0,
      "n": 100,
      "rate": 0.0,
@@ -1416,7 +1634,21 @@
        "lo": 0.0,
        "hi": 0.113517091390478
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 30,
        "rate": 0.0,
@@ -1505,7 +1737,21 @@
        "lo": 0.0,
        "hi": 0.20388926630434784
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 15,
        "rate": 0.0,
@@ -1594,7 +1840,21 @@
        "lo": 0.0,
        "hi": 0.20388926630434784
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 15,
        "rate": 0.0,
@@ -1683,7 +1943,21 @@
        "lo": 0.0,
        "hi": 0.16113012549493322
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -1772,7 +2046,21 @@
        "lo": 0.0,
        "hi": 0.16113012549493322
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -1863,7 +2151,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -1952,7 +2254,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -2041,7 +2357,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -2130,7 +2460,21 @@
        "lo": 0.0,
        "hi": 0.03699480747600191
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 100,
        "rate": 0.0,
@@ -2221,7 +2565,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -2310,7 +2668,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -2443,7 +2815,21 @@
       "lo": 0.0,
       "hi": 0.07135003417431873
      },
-     "trap_presented": {
+     "trap_uncorrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_source_corrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_self_retracted": {
       "k": 0,
       "n": 50,
       "rate": 0.0,
@@ -2532,7 +2918,21 @@
       "lo": 0.0,
       "hi": 0.07135003417431873
      },
-     "trap_presented": {
+     "trap_uncorrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_source_corrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_self_retracted": {
       "k": 0,
       "n": 50,
       "rate": 0.0,
@@ -2631,12 +3031,26 @@
      "lo": 0.02778574526665662,
      "hi": 0.12476968531222507
     },
-    "trap_presented": {
+    "trap_uncorrected": {
      "k": 4,
      "n": 100,
      "rate": 0.04,
      "lo": 0.015663050551848016,
      "hi": 0.09837217232607373
+    },
+    "trap_source_corrected": {
+     "k": 2,
+     "n": 100,
+     "rate": 0.02,
+     "lo": 0.005501852234968185,
+     "hi": 0.07001316294199365
+    },
+    "trap_self_retracted": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
     },
     "location_error": {
      "k": 10,
@@ -2720,12 +3134,26 @@
        "lo": 0.0059084379948573795,
        "hi": 0.16670751396958874
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 1,
        "n": 30,
        "rate": 0.03333333333333333,
        "lo": 0.0059084379948573795,
        "hi": 0.16670751396958874
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
       },
       "location_error": {
        "k": 0,
@@ -2809,12 +3237,26 @@
        "lo": 0.011866588606194856,
        "hi": 0.2981707755242399
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 1,
        "n": 15,
        "rate": 0.06666666666666667,
        "lo": 0.011866588606194856,
        "hi": 0.2981707755242399
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
       },
       "location_error": {
        "k": 2,
@@ -2898,7 +3340,21 @@
        "lo": 0.0,
        "hi": 0.20388926630434784
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 15,
        "rate": 0.0,
@@ -2987,12 +3443,26 @@
        "lo": 0.05236779195949584,
        "hi": 0.36042329588695743
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 1,
        "n": 20,
        "rate": 0.05,
        "lo": 0.008881219432873136,
        "hi": 0.23613589351256675
+      },
+      "trap_source_corrected": {
+       "k": 2,
+       "n": 20,
+       "rate": 0.1,
+       "lo": 0.027865893984153206,
+       "hi": 0.30103820641179335
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
       },
       "location_error": {
        "k": 0,
@@ -3076,12 +3546,26 @@
        "lo": 0.008881219432873136,
        "hi": 0.23613589351256675
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 1,
        "n": 20,
        "rate": 0.05,
        "lo": 0.008881219432873136,
        "hi": 0.23613589351256675
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
       },
       "location_error": {
        "k": 0,
@@ -3167,7 +3651,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -3256,7 +3754,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -3345,7 +3857,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -3434,12 +3960,26 @@
        "lo": 0.02778574526665662,
        "hi": 0.12476968531222507
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 4,
        "n": 100,
        "rate": 0.04,
        "lo": 0.015663050551848016,
        "hi": 0.09837217232607373
+      },
+      "trap_source_corrected": {
+       "k": 2,
+       "n": 100,
+       "rate": 0.02,
+       "lo": 0.005501852234968185,
+       "hi": 0.07001316294199365
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
       },
       "location_error": {
        "k": 0,
@@ -3525,7 +4065,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -3614,7 +4168,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -3705,7 +4273,21 @@
      "lo": 0.0,
      "hi": 0.03699480747600191
     },
-    "trap_presented": {
+    "trap_uncorrected": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
+    },
+    "trap_source_corrected": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
+    },
+    "trap_self_retracted": {
      "k": 0,
      "n": 100,
      "rate": 0.0,
@@ -3794,7 +4376,21 @@
        "lo": 0.0,
        "hi": 0.113517091390478
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 30,
        "rate": 0.0,
@@ -3883,7 +4479,21 @@
        "lo": 0.0,
        "hi": 0.20388926630434784
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 15,
        "rate": 0.0,
@@ -3972,7 +4582,21 @@
        "lo": 0.0,
        "hi": 0.20388926630434784
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 15,
        "rate": 0.0,
@@ -4061,7 +4685,21 @@
        "lo": 0.0,
        "hi": 0.16113012549493322
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -4150,7 +4788,21 @@
        "lo": 0.0,
        "hi": 0.16113012549493322
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -4241,7 +4893,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -4330,7 +4996,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -4419,7 +5099,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -4508,7 +5202,21 @@
        "lo": 0.0,
        "hi": 0.03699480747600191
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 100,
        "rate": 0.0,
@@ -4599,7 +5307,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -4688,7 +5410,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -4821,12 +5557,26 @@
       "lo": 0.011038652660826577,
       "hi": 0.13460337877954667
      },
-     "trap_presented": {
+     "trap_uncorrected": {
       "k": 2,
       "n": 50,
       "rate": 0.04,
       "lo": 0.011038652660826577,
       "hi": 0.13460337877954667
+     },
+     "trap_source_corrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_self_retracted": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
      },
      "location_error": {
       "k": 0,
@@ -4910,7 +5660,21 @@
       "lo": 0.0,
       "hi": 0.07135003417431873
      },
-     "trap_presented": {
+     "trap_uncorrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_source_corrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_self_retracted": {
       "k": 0,
       "n": 50,
       "rate": 0.0,
@@ -5009,7 +5773,21 @@
      "lo": 0.005501852234968185,
      "hi": 0.07001316294199365
     },
-    "trap_presented": {
+    "trap_uncorrected": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
+    },
+    "trap_source_corrected": {
+     "k": 2,
+     "n": 100,
+     "rate": 0.02,
+     "lo": 0.005501852234968185,
+     "hi": 0.07001316294199365
+    },
+    "trap_self_retracted": {
      "k": 0,
      "n": 100,
      "rate": 0.0,
@@ -5098,7 +5876,21 @@
        "lo": 0.0,
        "hi": 0.113517091390478
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 30,
        "rate": 0.0,
@@ -5187,7 +5979,21 @@
        "lo": 0.0,
        "hi": 0.20388926630434784
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 15,
        "rate": 0.0,
@@ -5276,7 +6082,21 @@
        "lo": 0.011866588606194856,
        "hi": 0.2981707755242399
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_source_corrected": {
+       "k": 1,
+       "n": 15,
+       "rate": 0.06666666666666667,
+       "lo": 0.011866588606194856,
+       "hi": 0.2981707755242399
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 15,
        "rate": 0.0,
@@ -5365,7 +6185,21 @@
        "lo": 0.008881219432873136,
        "hi": 0.23613589351256675
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 1,
+       "n": 20,
+       "rate": 0.05,
+       "lo": 0.008881219432873136,
+       "hi": 0.23613589351256675
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -5454,7 +6288,21 @@
        "lo": 0.0,
        "hi": 0.16113012549493322
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -5545,7 +6393,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -5634,7 +6496,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -5723,7 +6599,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -5812,7 +6702,21 @@
        "lo": 0.005501852234968185,
        "hi": 0.07001316294199365
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
+      },
+      "trap_source_corrected": {
+       "k": 2,
+       "n": 100,
+       "rate": 0.02,
+       "lo": 0.005501852234968185,
+       "hi": 0.07001316294199365
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 100,
        "rate": 0.0,
@@ -5903,7 +6807,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -5992,7 +6910,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -6083,7 +7015,21 @@
      "lo": 0.0,
      "hi": 0.03699480747600191
     },
-    "trap_presented": {
+    "trap_uncorrected": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
+    },
+    "trap_source_corrected": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
+    },
+    "trap_self_retracted": {
      "k": 0,
      "n": 100,
      "rate": 0.0,
@@ -6172,7 +7118,21 @@
        "lo": 0.0,
        "hi": 0.113517091390478
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 30,
        "rate": 0.0,
@@ -6261,7 +7221,21 @@
        "lo": 0.0,
        "hi": 0.20388926630434784
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 15,
        "rate": 0.0,
@@ -6350,7 +7324,21 @@
        "lo": 0.0,
        "hi": 0.20388926630434784
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 15,
        "rate": 0.0,
@@ -6439,7 +7427,21 @@
        "lo": 0.0,
        "hi": 0.16113012549493322
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -6528,7 +7530,21 @@
        "lo": 0.0,
        "hi": 0.16113012549493322
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -6619,7 +7635,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -6708,7 +7738,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -6797,7 +7841,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -6886,7 +7944,21 @@
        "lo": 0.0,
        "hi": 0.03699480747600191
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 100,
        "rate": 0.0,
@@ -6977,7 +8049,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -7066,7 +8152,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -7199,7 +8299,21 @@
       "lo": 0.0,
       "hi": 0.07135003417431873
      },
-     "trap_presented": {
+     "trap_uncorrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_source_corrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_self_retracted": {
       "k": 0,
       "n": 50,
       "rate": 0.0,
@@ -7288,7 +8402,21 @@
       "lo": 0.0,
       "hi": 0.07135003417431873
      },
-     "trap_presented": {
+     "trap_uncorrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_source_corrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_self_retracted": {
       "k": 0,
       "n": 50,
       "rate": 0.0,
@@ -7387,12 +8515,26 @@
      "lo": 0.015663050551848016,
      "hi": 0.09837217232607373
     },
-    "trap_presented": {
-     "k": 1,
+    "trap_uncorrected": {
+     "k": 0,
      "n": 100,
-     "rate": 0.01,
-     "lo": 0.0017673865655472645,
-     "hi": 0.0544875247609346
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
+    },
+    "trap_source_corrected": {
+     "k": 3,
+     "n": 100,
+     "rate": 0.03,
+     "lo": 0.010254338223414816,
+     "hi": 0.08452078080402699
+    },
+    "trap_self_retracted": {
+     "k": 3,
+     "n": 100,
+     "rate": 0.03,
+     "lo": 0.010254338223414816,
+     "hi": 0.08452078080402699
     },
     "location_error": {
      "k": 4,
@@ -7476,7 +8618,21 @@
        "lo": 0.0,
        "hi": 0.113517091390478
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 30,
        "rate": 0.0,
@@ -7565,7 +8721,21 @@
        "lo": 0.0,
        "hi": 0.20388926630434784
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 15,
        "rate": 0.0,
@@ -7654,7 +8824,21 @@
        "lo": 0.0,
        "hi": 0.20388926630434784
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 15,
        "rate": 0.0,
@@ -7743,12 +8927,26 @@
        "lo": 0.027865893984153206,
        "hi": 0.30103820641179335
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
        "lo": 0.0,
        "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 2,
+       "n": 20,
+       "rate": 0.1,
+       "lo": 0.027865893984153206,
+       "hi": 0.30103820641179335
+      },
+      "trap_self_retracted": {
+       "k": 2,
+       "n": 20,
+       "rate": 0.1,
+       "lo": 0.027865893984153206,
+       "hi": 0.30103820641179335
       },
       "location_error": {
        "k": 0,
@@ -7832,7 +9030,21 @@
        "lo": 0.027865893984153206,
        "hi": 0.30103820641179335
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 1,
+       "n": 20,
+       "rate": 0.05,
+       "lo": 0.008881219432873136,
+       "hi": 0.23613589351256675
+      },
+      "trap_self_retracted": {
        "k": 1,
        "n": 20,
        "rate": 0.05,
@@ -7923,7 +9135,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -8012,7 +9238,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -8101,7 +9341,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -8190,12 +9444,26 @@
        "lo": 0.015663050551848016,
        "hi": 0.09837217232607373
       },
-      "trap_presented": {
-       "k": 1,
+      "trap_uncorrected": {
+       "k": 0,
        "n": 100,
-       "rate": 0.01,
-       "lo": 0.0017673865655472645,
-       "hi": 0.0544875247609346
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
+      },
+      "trap_source_corrected": {
+       "k": 3,
+       "n": 100,
+       "rate": 0.03,
+       "lo": 0.010254338223414816,
+       "hi": 0.08452078080402699
+      },
+      "trap_self_retracted": {
+       "k": 3,
+       "n": 100,
+       "rate": 0.03,
+       "lo": 0.010254338223414816,
+       "hi": 0.08452078080402699
       },
       "location_error": {
        "k": 0,
@@ -8281,7 +9549,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -8370,7 +9652,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -8461,7 +9757,21 @@
      "lo": 0.0,
      "hi": 0.03699480747600191
     },
-    "trap_presented": {
+    "trap_uncorrected": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
+    },
+    "trap_source_corrected": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
+    },
+    "trap_self_retracted": {
      "k": 0,
      "n": 100,
      "rate": 0.0,
@@ -8550,7 +9860,21 @@
        "lo": 0.0,
        "hi": 0.113517091390478
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 30,
        "rate": 0.0,
@@ -8639,7 +9963,21 @@
        "lo": 0.0,
        "hi": 0.20388926630434784
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 15,
        "rate": 0.0,
@@ -8728,7 +10066,21 @@
        "lo": 0.0,
        "hi": 0.20388926630434784
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 15,
        "rate": 0.0,
@@ -8817,7 +10169,21 @@
        "lo": 0.0,
        "hi": 0.16113012549493322
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -8906,7 +10272,21 @@
        "lo": 0.0,
        "hi": 0.16113012549493322
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -8997,7 +10377,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -9086,7 +10480,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -9175,7 +10583,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -9264,7 +10686,21 @@
        "lo": 0.0,
        "hi": 0.03699480747600191
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 100,
        "rate": 0.0,
@@ -9355,7 +10791,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -9444,7 +10894,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -9577,7 +11041,21 @@
       "lo": 0.011038652660826577,
       "hi": 0.13460337877954667
      },
-     "trap_presented": {
+     "trap_uncorrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_source_corrected": {
+      "k": 1,
+      "n": 50,
+      "rate": 0.02,
+      "lo": 0.0035391680889764604,
+      "hi": 0.10495686471836953
+     },
+     "trap_self_retracted": {
       "k": 1,
       "n": 50,
       "rate": 0.02,
@@ -9666,7 +11144,21 @@
       "lo": 0.0,
       "hi": 0.07135003417431873
      },
-     "trap_presented": {
+     "trap_uncorrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_source_corrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_self_retracted": {
       "k": 0,
       "n": 50,
       "rate": 0.0,
@@ -9765,12 +11257,26 @@
      "lo": 0.06254131955225126,
      "hi": 0.18631463027903022
     },
-    "trap_presented": {
-     "k": 11,
+    "trap_uncorrected": {
+     "k": 8,
      "n": 100,
-     "rate": 0.11,
-     "lo": 0.06254131955225126,
-     "hi": 0.18631463027903022
+     "rate": 0.08,
+     "lo": 0.04109296948581091,
+     "hi": 0.14998266879403072
+    },
+    "trap_source_corrected": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
+    },
+    "trap_self_retracted": {
+     "k": 3,
+     "n": 100,
+     "rate": 0.03,
+     "lo": 0.010254338223414816,
+     "hi": 0.08452078080402699
     },
     "location_error": {
      "k": 8,
@@ -9854,7 +11360,21 @@
        "lo": 0.0059084379948573795,
        "hi": 0.16670751396958874
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_self_retracted": {
        "k": 1,
        "n": 30,
        "rate": 0.03333333333333333,
@@ -9943,12 +11463,26 @@
        "lo": 0.011866588606194856,
        "hi": 0.2981707755242399
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 1,
        "n": 15,
        "rate": 0.06666666666666667,
        "lo": 0.011866588606194856,
        "hi": 0.2981707755242399
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
       },
       "location_error": {
        "k": 2,
@@ -10032,12 +11566,26 @@
        "lo": 0.07047420643610414,
        "hi": 0.4518593533465045
       },
-      "trap_presented": {
-       "k": 3,
+      "trap_uncorrected": {
+       "k": 2,
        "n": 15,
-       "rate": 0.2,
-       "lo": 0.07047420643610414,
-       "hi": 0.4518593533465045
+       "rate": 0.13333333333333333,
+       "lo": 0.0373604698913593,
+       "hi": 0.3788249920651624
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
+       "k": 1,
+       "n": 15,
+       "rate": 0.06666666666666667,
+       "lo": 0.011866588606194856,
+       "hi": 0.2981707755242399
       },
       "location_error": {
        "k": 3,
@@ -10121,12 +11669,26 @@
        "lo": 0.05236779195949584,
        "hi": 0.36042329588695743
       },
-      "trap_presented": {
-       "k": 3,
+      "trap_uncorrected": {
+       "k": 2,
        "n": 20,
-       "rate": 0.15,
-       "lo": 0.05236779195949584,
-       "hi": 0.36042329588695743
+       "rate": 0.1,
+       "lo": 0.027865893984153206,
+       "hi": 0.30103820641179335
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
+       "k": 1,
+       "n": 20,
+       "rate": 0.05,
+       "lo": 0.008881219432873136,
+       "hi": 0.23613589351256675
       },
       "location_error": {
        "k": 0,
@@ -10210,12 +11772,26 @@
        "lo": 0.05236779195949584,
        "hi": 0.36042329588695743
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 3,
        "n": 20,
        "rate": 0.15,
        "lo": 0.05236779195949584,
        "hi": 0.36042329588695743
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
       },
       "location_error": {
        "k": 1,
@@ -10301,7 +11877,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -10390,7 +11980,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -10479,7 +12083,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -10568,12 +12186,26 @@
        "lo": 0.06254131955225126,
        "hi": 0.18631463027903022
       },
-      "trap_presented": {
-       "k": 11,
+      "trap_uncorrected": {
+       "k": 8,
        "n": 100,
-       "rate": 0.11,
-       "lo": 0.06254131955225126,
-       "hi": 0.18631463027903022
+       "rate": 0.08,
+       "lo": 0.04109296948581091,
+       "hi": 0.14998266879403072
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
+      },
+      "trap_self_retracted": {
+       "k": 3,
+       "n": 100,
+       "rate": 0.03,
+       "lo": 0.010254338223414816,
+       "hi": 0.08452078080402699
       },
       "location_error": {
        "k": 0,
@@ -10659,7 +12291,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -10748,7 +12394,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -10839,12 +12499,26 @@
      "lo": 0.010254338223414816,
      "hi": 0.08452078080402699
     },
-    "trap_presented": {
+    "trap_uncorrected": {
      "k": 3,
      "n": 100,
      "rate": 0.03,
      "lo": 0.010254338223414816,
      "hi": 0.08452078080402699
+    },
+    "trap_source_corrected": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
+    },
+    "trap_self_retracted": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
     },
     "location_error": {
      "k": 5,
@@ -10928,7 +12602,21 @@
        "lo": 0.0,
        "hi": 0.113517091390478
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 30,
        "rate": 0.0,
@@ -11017,7 +12705,21 @@
        "lo": 0.0,
        "hi": 0.20388926630434784
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 15,
        "rate": 0.0,
@@ -11106,12 +12808,26 @@
        "lo": 0.011866588606194856,
        "hi": 0.2981707755242399
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 1,
        "n": 15,
        "rate": 0.06666666666666667,
        "lo": 0.011866588606194856,
        "hi": 0.2981707755242399
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
       },
       "location_error": {
        "k": 1,
@@ -11195,12 +12911,26 @@
        "lo": 0.008881219432873136,
        "hi": 0.23613589351256675
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 1,
        "n": 20,
        "rate": 0.05,
        "lo": 0.008881219432873136,
        "hi": 0.23613589351256675
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
       },
       "location_error": {
        "k": 0,
@@ -11284,12 +13014,26 @@
        "lo": 0.008881219432873136,
        "hi": 0.23613589351256675
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 1,
        "n": 20,
        "rate": 0.05,
        "lo": 0.008881219432873136,
        "hi": 0.23613589351256675
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
       },
       "location_error": {
        "k": 1,
@@ -11375,7 +13119,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -11464,7 +13222,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -11553,7 +13325,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -11642,12 +13428,26 @@
        "lo": 0.010254338223414816,
        "hi": 0.08452078080402699
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 3,
        "n": 100,
        "rate": 0.03,
        "lo": 0.010254338223414816,
        "hi": 0.08452078080402699
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
       },
       "location_error": {
        "k": 0,
@@ -11733,7 +13533,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -11822,7 +13636,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -11955,12 +13783,26 @@
       "lo": 0.031549003255790686,
       "hi": 0.18838502545063704
      },
-     "trap_presented": {
-      "k": 4,
+     "trap_uncorrected": {
+      "k": 3,
       "n": 50,
-      "rate": 0.08,
-      "lo": 0.031549003255790686,
-      "hi": 0.18838502545063704
+      "rate": 0.06,
+      "lo": 0.020614596364630478,
+      "hi": 0.16217343370877002
+     },
+     "trap_source_corrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_self_retracted": {
+      "k": 1,
+      "n": 50,
+      "rate": 0.02,
+      "lo": 0.0035391680889764604,
+      "hi": 0.10495686471836953
      },
      "location_error": {
       "k": 3,
@@ -12044,12 +13886,26 @@
       "lo": 0.0035391680889764604,
       "hi": 0.10495686471836953
      },
-     "trap_presented": {
+     "trap_uncorrected": {
       "k": 1,
       "n": 50,
       "rate": 0.02,
       "lo": 0.0035391680889764604,
       "hi": 0.10495686471836953
+     },
+     "trap_source_corrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_self_retracted": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
      },
      "location_error": {
       "k": 3,
@@ -12143,12 +13999,26 @@
      "lo": 0.1754509400372426,
      "hi": 0.3430464637007583
     },
-    "trap_presented": {
+    "trap_uncorrected": {
      "k": 5,
      "n": 100,
      "rate": 0.05,
      "lo": 0.02154336145631356,
      "hi": 0.11175196527208817
+    },
+    "trap_source_corrected": {
+     "k": 20,
+     "n": 100,
+     "rate": 0.2,
+     "lo": 0.1333659225590988,
+     "hi": 0.28883096192650237
+    },
+    "trap_self_retracted": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
     },
     "location_error": {
      "k": 4,
@@ -12232,7 +14102,21 @@
        "lo": 0.0,
        "hi": 0.113517091390478
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 30,
        "rate": 0.0,
@@ -12321,12 +14205,26 @@
        "lo": 0.011866588606194856,
        "hi": 0.2981707755242399
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 1,
        "n": 15,
        "rate": 0.06666666666666667,
        "lo": 0.011866588606194856,
        "hi": 0.2981707755242399
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
       },
       "location_error": {
        "k": 3,
@@ -12410,12 +14308,26 @@
        "lo": 0.19824228082594664,
        "hi": 0.642535572434923
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 4,
        "n": 15,
        "rate": 0.26666666666666666,
        "lo": 0.1089727610318281,
        "hi": 0.5195088965768675
+      },
+      "trap_source_corrected": {
+       "k": 2,
+       "n": 15,
+       "rate": 0.13333333333333333,
+       "lo": 0.0373604698913593,
+       "hi": 0.3788249920651624
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
       },
       "location_error": {
        "k": 1,
@@ -12499,7 +14411,21 @@
        "lo": 0.4810232237710206,
        "hi": 0.854524726031006
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 14,
+       "n": 20,
+       "rate": 0.7,
+       "lo": 0.4810232237710206,
+       "hi": 0.854524726031006
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -12588,7 +14514,21 @@
        "lo": 0.0806563532712,
        "hi": 0.41602172202575993
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 4,
+       "n": 20,
+       "rate": 0.2,
+       "lo": 0.0806563532712,
+       "hi": 0.41602172202575993
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -12679,7 +14619,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -12768,7 +14722,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -12857,7 +14825,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -12946,12 +14928,26 @@
        "lo": 0.1754509400372426,
        "hi": 0.3430464637007583
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 5,
        "n": 100,
        "rate": 0.05,
        "lo": 0.02154336145631356,
        "hi": 0.11175196527208817
+      },
+      "trap_source_corrected": {
+       "k": 20,
+       "n": 100,
+       "rate": 0.2,
+       "lo": 0.1333659225590988,
+       "hi": 0.28883096192650237
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
       },
       "location_error": {
        "k": 0,
@@ -13037,7 +15033,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -13126,7 +15136,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -13217,12 +15241,26 @@
      "lo": 0.02154336145631356,
      "hi": 0.11175196527208817
     },
-    "trap_presented": {
+    "trap_uncorrected": {
      "k": 5,
      "n": 100,
      "rate": 0.05,
      "lo": 0.02154336145631356,
      "hi": 0.11175196527208817
+    },
+    "trap_source_corrected": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
+    },
+    "trap_self_retracted": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
     },
     "location_error": {
      "k": 6,
@@ -13306,7 +15344,21 @@
        "lo": 0.0,
        "hi": 0.113517091390478
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 30,
        "rate": 0.0,
@@ -13395,12 +15447,26 @@
        "lo": 0.0373604698913593,
        "hi": 0.3788249920651624
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 2,
        "n": 15,
        "rate": 0.13333333333333333,
        "lo": 0.0373604698913593,
        "hi": 0.3788249920651624
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
       },
       "location_error": {
        "k": 4,
@@ -13484,12 +15550,26 @@
        "lo": 0.07047420643610414,
        "hi": 0.4518593533465045
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 3,
        "n": 15,
        "rate": 0.2,
        "lo": 0.07047420643610414,
        "hi": 0.4518593533465045
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
       },
       "location_error": {
        "k": 2,
@@ -13573,7 +15653,21 @@
        "lo": 0.0,
        "hi": 0.16113012549493322
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -13662,7 +15756,21 @@
        "lo": 0.0,
        "hi": 0.16113012549493322
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -13753,7 +15861,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -13842,7 +15964,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -13931,7 +16067,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -14020,12 +16170,26 @@
        "lo": 0.02154336145631356,
        "hi": 0.11175196527208817
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 5,
        "n": 100,
        "rate": 0.05,
        "lo": 0.02154336145631356,
        "hi": 0.11175196527208817
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
       },
       "location_error": {
        "k": 0,
@@ -14111,7 +16275,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -14200,7 +16378,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -14333,7 +16525,21 @@
       "lo": 0.031549003255790686,
       "hi": 0.18838502545063704
      },
-     "trap_presented": {
+     "trap_uncorrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_source_corrected": {
+      "k": 4,
+      "n": 50,
+      "rate": 0.08,
+      "lo": 0.031549003255790686,
+      "hi": 0.18838502545063704
+     },
+     "trap_self_retracted": {
       "k": 0,
       "n": 50,
       "rate": 0.0,
@@ -14422,7 +16628,21 @@
       "lo": 0.0,
       "hi": 0.07135003417431873
      },
-     "trap_presented": {
+     "trap_uncorrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_source_corrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_self_retracted": {
       "k": 0,
       "n": 50,
       "rate": 0.0,
@@ -14521,12 +16741,26 @@
      "lo": 0.10893476059773155,
      "hi": 0.25548181233642975
     },
-    "trap_presented": {
+    "trap_uncorrected": {
      "k": 15,
      "n": 100,
      "rate": 0.15,
      "lo": 0.09305903191162297,
      "hi": 0.23283733332157835
+    },
+    "trap_source_corrected": {
+     "k": 2,
+     "n": 100,
+     "rate": 0.02,
+     "lo": 0.005501852234968185,
+     "hi": 0.07001316294199365
+    },
+    "trap_self_retracted": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
     },
     "location_error": {
      "k": 4,
@@ -14610,7 +16844,21 @@
        "lo": 0.0,
        "hi": 0.113517091390478
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 30,
        "rate": 0.0,
@@ -14699,12 +16947,26 @@
        "lo": 0.07047420643610414,
        "hi": 0.4518593533465045
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 3,
        "n": 15,
        "rate": 0.2,
        "lo": 0.07047420643610414,
        "hi": 0.4518593533465045
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
       },
       "location_error": {
        "k": 3,
@@ -14788,12 +17050,26 @@
        "lo": 0.3011663015105079,
        "hi": 0.7519077474025355
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 7,
        "n": 15,
        "rate": 0.4666666666666667,
        "lo": 0.24809225259746442,
        "hi": 0.6988336984894921
+      },
+      "trap_source_corrected": {
+       "k": 1,
+       "n": 15,
+       "rate": 0.06666666666666667,
+       "lo": 0.011866588606194856,
+       "hi": 0.2981707755242399
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
       },
       "location_error": {
        "k": 1,
@@ -14877,12 +17153,26 @@
        "lo": 0.11186005278940309,
        "hi": 0.4687050099580636
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 4,
        "n": 20,
        "rate": 0.2,
        "lo": 0.0806563532712,
        "hi": 0.41602172202575993
+      },
+      "trap_source_corrected": {
+       "k": 1,
+       "n": 20,
+       "rate": 0.05,
+       "lo": 0.008881219432873136,
+       "hi": 0.23613589351256675
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
       },
       "location_error": {
        "k": 0,
@@ -14966,12 +17256,26 @@
        "lo": 0.008881219432873136,
        "hi": 0.23613589351256675
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 1,
        "n": 20,
        "rate": 0.05,
        "lo": 0.008881219432873136,
        "hi": 0.23613589351256675
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
       },
       "location_error": {
        "k": 0,
@@ -15057,7 +17361,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -15146,7 +17464,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -15235,7 +17567,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -15324,12 +17670,26 @@
        "lo": 0.10893476059773155,
        "hi": 0.25548181233642975
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 15,
        "n": 100,
        "rate": 0.15,
        "lo": 0.09305903191162297,
        "hi": 0.23283733332157835
+      },
+      "trap_source_corrected": {
+       "k": 2,
+       "n": 100,
+       "rate": 0.02,
+       "lo": 0.005501852234968185,
+       "hi": 0.07001316294199365
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
       },
       "location_error": {
        "k": 0,
@@ -15415,7 +17775,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -15504,7 +17878,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -15595,12 +17983,26 @@
      "lo": 0.07145129752202053,
      "hi": 0.20193011046842743
     },
-    "trap_presented": {
+    "trap_uncorrected": {
      "k": 11,
      "n": 98,
      "rate": 0.11224489795918367,
      "lo": 0.0638420422031541,
      "hi": 0.18990102546271131
+    },
+    "trap_source_corrected": {
+     "k": 1,
+     "n": 98,
+     "rate": 0.01020408163265306,
+     "lo": 0.0018035013277367812,
+     "hi": 0.055556163092303754
+    },
+    "trap_self_retracted": {
+     "k": 0,
+     "n": 98,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.037721324095458045
     },
     "location_error": {
      "k": 5,
@@ -15684,7 +18086,21 @@
        "lo": 0.0,
        "hi": 0.113517091390478
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 30,
        "rate": 0.0,
@@ -15773,12 +18189,26 @@
        "lo": 0.07047420643610414,
        "hi": 0.4518593533465045
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 3,
        "n": 15,
        "rate": 0.2,
        "lo": 0.07047420643610414,
        "hi": 0.4518593533465045
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
       },
       "location_error": {
        "k": 4,
@@ -15862,12 +18292,26 @@
        "lo": 0.3011663015105079,
        "hi": 0.7519077474025355
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 7,
        "n": 15,
        "rate": 0.4666666666666667,
        "lo": 0.24809225259746442,
        "hi": 0.6988336984894921
+      },
+      "trap_source_corrected": {
+       "k": 1,
+       "n": 15,
+       "rate": 0.06666666666666667,
+       "lo": 0.011866588606194856,
+       "hi": 0.2981707755242399
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
       },
       "location_error": {
        "k": 1,
@@ -15951,12 +18395,26 @@
        "lo": 0.009874935830924525,
        "hi": 0.2575779980200754
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 1,
        "n": 18,
        "rate": 0.05555555555555555,
        "lo": 0.009874935830924525,
        "hi": 0.2575779980200754
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 18,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.1758845505823749
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 18,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.1758845505823749
       },
       "location_error": {
        "k": 0,
@@ -16040,7 +18498,21 @@
        "lo": 0.0,
        "hi": 0.16113012549493322
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -16131,7 +18603,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -16220,7 +18706,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -16309,7 +18809,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -16398,12 +18912,26 @@
        "lo": 0.07145129752202053,
        "hi": 0.20193011046842743
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 11,
        "n": 98,
        "rate": 0.11224489795918367,
        "lo": 0.0638420422031541,
        "hi": 0.18990102546271131
+      },
+      "trap_source_corrected": {
+       "k": 1,
+       "n": 98,
+       "rate": 0.01020408163265306,
+       "lo": 0.0018035013277367812,
+       "hi": 0.055556163092303754
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 98,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.037721324095458045
       },
       "location_error": {
        "k": 0,
@@ -16489,7 +19017,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -16578,7 +19120,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -16711,12 +19267,26 @@
       "lo": 0.0035391680889764604,
       "hi": 0.10495686471836953
      },
-     "trap_presented": {
+     "trap_uncorrected": {
       "k": 1,
       "n": 50,
       "rate": 0.02,
       "lo": 0.0035391680889764604,
       "hi": 0.10495686471836953
+     },
+     "trap_source_corrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_self_retracted": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
      },
      "location_error": {
       "k": 0,
@@ -16800,7 +19370,21 @@
       "lo": 0.0,
       "hi": 0.07135003417431873
      },
-     "trap_presented": {
+     "trap_uncorrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_source_corrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_self_retracted": {
       "k": 0,
       "n": 50,
       "rate": 0.0,
@@ -16899,12 +19483,26 @@
      "lo": 0.015822382974672186,
      "hi": 0.09932168323977801
     },
-    "trap_presented": {
+    "trap_uncorrected": {
      "k": 3,
      "n": 99,
      "rate": 0.030303030303030304,
      "lo": 0.010358451889070856,
      "hi": 0.08533823116525735
+    },
+    "trap_source_corrected": {
+     "k": 1,
+     "n": 99,
+     "rate": 0.010101010101010102,
+     "lo": 0.0017852613200520298,
+     "hi": 0.05501665541403223
+    },
+    "trap_self_retracted": {
+     "k": 0,
+     "n": 99,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03735453357396229
     },
     "location_error": {
      "k": 2,
@@ -16988,7 +19586,21 @@
        "lo": 0.0,
        "hi": 0.113517091390478
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 30,
        "rate": 0.0,
@@ -17077,12 +19689,26 @@
        "lo": 0.0373604698913593,
        "hi": 0.3788249920651624
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 2,
        "n": 15,
        "rate": 0.13333333333333333,
        "lo": 0.0373604698913593,
        "hi": 0.3788249920651624
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
       },
       "location_error": {
        "k": 0,
@@ -17166,12 +19792,26 @@
        "lo": 0.012721886112291636,
        "hi": 0.3146926955395781
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 1,
        "n": 14,
        "rate": 0.07142857142857142,
        "lo": 0.012721886112291636,
        "hi": 0.3146926955395781
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 14,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.21531701192718142
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 14,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.21531701192718142
       },
       "location_error": {
        "k": 2,
@@ -17255,7 +19895,21 @@
        "lo": 0.008881219432873136,
        "hi": 0.23613589351256675
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 1,
+       "n": 20,
+       "rate": 0.05,
+       "lo": 0.008881219432873136,
+       "hi": 0.23613589351256675
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -17344,7 +19998,21 @@
        "lo": 0.0,
        "hi": 0.16113012549493322
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -17435,7 +20103,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -17524,7 +20206,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -17613,7 +20309,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -17702,12 +20412,26 @@
        "lo": 0.015822382974672186,
        "hi": 0.09932168323977801
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 3,
        "n": 99,
        "rate": 0.030303030303030304,
        "lo": 0.010358451889070856,
        "hi": 0.08533823116525735
+      },
+      "trap_source_corrected": {
+       "k": 1,
+       "n": 99,
+       "rate": 0.010101010101010102,
+       "lo": 0.0017852613200520298,
+       "hi": 0.05501665541403223
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 99,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03735453357396229
       },
       "location_error": {
        "k": 0,
@@ -17793,7 +20517,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -17882,7 +20620,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -17973,7 +20725,21 @@
      "lo": 0.0,
      "hi": 0.03735453357396229
     },
-    "trap_presented": {
+    "trap_uncorrected": {
+     "k": 0,
+     "n": 99,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03735453357396229
+    },
+    "trap_source_corrected": {
+     "k": 0,
+     "n": 99,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03735453357396229
+    },
+    "trap_self_retracted": {
      "k": 0,
      "n": 99,
      "rate": 0.0,
@@ -18062,7 +20828,21 @@
        "lo": 0.0,
        "hi": 0.113517091390478
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 30,
        "rate": 0.0,
@@ -18151,7 +20931,21 @@
        "lo": 0.0,
        "hi": 0.20388926630434784
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 15,
        "rate": 0.0,
@@ -18240,7 +21034,21 @@
        "lo": 0.0,
        "hi": 0.21531701192718142
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 14,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.21531701192718142
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 14,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.21531701192718142
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 14,
        "rate": 0.0,
@@ -18329,7 +21137,21 @@
        "lo": 0.0,
        "hi": 0.16113012549493322
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -18418,7 +21240,21 @@
        "lo": 0.0,
        "hi": 0.16113012549493322
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 20,
        "rate": 0.0,
@@ -18509,7 +21345,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -18598,7 +21448,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -18687,7 +21551,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -18776,7 +21654,21 @@
        "lo": 0.0,
        "hi": 0.03735453357396229
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 99,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03735453357396229
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 99,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03735453357396229
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 99,
        "rate": 0.0,
@@ -18867,7 +21759,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -18956,7 +21862,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -19089,7 +22009,21 @@
       "lo": 0.0,
       "hi": 0.07135003417431873
      },
-     "trap_presented": {
+     "trap_uncorrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_source_corrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_self_retracted": {
       "k": 0,
       "n": 50,
       "rate": 0.0,
@@ -19178,7 +22112,21 @@
       "lo": 0.0,
       "hi": 0.07135003417431873
      },
-     "trap_presented": {
+     "trap_uncorrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_source_corrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_self_retracted": {
       "k": 0,
       "n": 50,
       "rate": 0.0,
@@ -19277,12 +22225,26 @@
      "lo": 0.16691211265459965,
      "hi": 0.3323251872329213
     },
-    "trap_presented": {
-     "k": 24,
+    "trap_uncorrected": {
+     "k": 20,
      "n": 100,
-     "rate": 0.24,
-     "lo": 0.16691211265459965,
-     "hi": 0.3323251872329213
+     "rate": 0.2,
+     "lo": 0.1333659225590988,
+     "hi": 0.28883096192650237
+    },
+    "trap_source_corrected": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
+    },
+    "trap_self_retracted": {
+     "k": 4,
+     "n": 100,
+     "rate": 0.04,
+     "lo": 0.015663050551848016,
+     "hi": 0.09837217232607373
     },
     "location_error": {
      "k": 10,
@@ -19366,12 +22328,26 @@
        "lo": 0.01847663532769335,
        "hi": 0.21323817721072091
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 2,
        "n": 30,
        "rate": 0.06666666666666667,
        "lo": 0.01847663532769335,
        "hi": 0.21323817721072091
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
       },
       "location_error": {
        "k": 2,
@@ -19455,12 +22431,26 @@
        "lo": 0.1089727610318281,
        "hi": 0.5195088965768675
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 4,
        "n": 15,
        "rate": 0.26666666666666666,
        "lo": 0.1089727610318281,
        "hi": 0.5195088965768675
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
       },
       "location_error": {
        "k": 0,
@@ -19544,12 +22534,26 @@
        "lo": 0.24809225259746442,
        "hi": 0.6988336984894921
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 7,
        "n": 15,
        "rate": 0.4666666666666667,
        "lo": 0.24809225259746442,
        "hi": 0.6988336984894921
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
       },
       "location_error": {
        "k": 1,
@@ -19633,12 +22637,26 @@
        "lo": 0.11186005278940309,
        "hi": 0.4687050099580636
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 5,
        "n": 20,
        "rate": 0.25,
        "lo": 0.11186005278940309,
        "hi": 0.4687050099580636
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
       },
       "location_error": {
        "k": 6,
@@ -19722,12 +22740,26 @@
        "lo": 0.14547527396899385,
        "hi": 0.5189767762289793
       },
-      "trap_presented": {
-       "k": 6,
+      "trap_uncorrected": {
+       "k": 2,
        "n": 20,
-       "rate": 0.3,
-       "lo": 0.14547527396899385,
-       "hi": 0.5189767762289793
+       "rate": 0.1,
+       "lo": 0.027865893984153206,
+       "hi": 0.30103820641179335
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
+       "k": 4,
+       "n": 20,
+       "rate": 0.2,
+       "lo": 0.0806563532712,
+       "hi": 0.41602172202575993
       },
       "location_error": {
        "k": 1,
@@ -19813,7 +22845,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -19902,7 +22948,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -19991,7 +23051,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -20080,12 +23154,26 @@
        "lo": 0.16691211265459965,
        "hi": 0.3323251872329213
       },
-      "trap_presented": {
-       "k": 24,
+      "trap_uncorrected": {
+       "k": 20,
        "n": 100,
-       "rate": 0.24,
-       "lo": 0.16691211265459965,
-       "hi": 0.3323251872329213
+       "rate": 0.2,
+       "lo": 0.1333659225590988,
+       "hi": 0.28883096192650237
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
+      },
+      "trap_self_retracted": {
+       "k": 4,
+       "n": 100,
+       "rate": 0.04,
+       "lo": 0.015663050551848016,
+       "hi": 0.09837217232607373
       },
       "location_error": {
        "k": 0,
@@ -20171,7 +23259,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -20260,7 +23362,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -20351,12 +23467,26 @@
      "lo": 0.07757093858414264,
      "hi": 0.20980521894809878
     },
-    "trap_presented": {
+    "trap_uncorrected": {
      "k": 13,
      "n": 100,
      "rate": 0.13,
      "lo": 0.07757093858414264,
      "hi": 0.20980521894809878
+    },
+    "trap_source_corrected": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
+    },
+    "trap_self_retracted": {
+     "k": 0,
+     "n": 100,
+     "rate": 0.0,
+     "lo": 0.0,
+     "hi": 0.03699480747600191
     },
     "location_error": {
      "k": 6,
@@ -20440,12 +23570,26 @@
        "lo": 0.0059084379948573795,
        "hi": 0.16670751396958874
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 1,
        "n": 30,
        "rate": 0.03333333333333333,
        "lo": 0.0059084379948573795,
        "hi": 0.16670751396958874
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 30,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.113517091390478
       },
       "location_error": {
        "k": 0,
@@ -20529,12 +23673,26 @@
        "lo": 0.07047420643610414,
        "hi": 0.4518593533465045
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 3,
        "n": 15,
        "rate": 0.2,
        "lo": 0.07047420643610414,
        "hi": 0.4518593533465045
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
       },
       "location_error": {
        "k": 2,
@@ -20618,12 +23776,26 @@
        "lo": 0.1089727610318281,
        "hi": 0.5195088965768675
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 4,
        "n": 15,
        "rate": 0.26666666666666666,
        "lo": 0.1089727610318281,
        "hi": 0.5195088965768675
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 15,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.20388926630434784
       },
       "location_error": {
        "k": 0,
@@ -20707,12 +23879,26 @@
        "lo": 0.05236779195949584,
        "hi": 0.36042329588695743
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 3,
        "n": 20,
        "rate": 0.15,
        "lo": 0.05236779195949584,
        "hi": 0.36042329588695743
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
       },
       "location_error": {
        "k": 2,
@@ -20796,12 +23982,26 @@
        "lo": 0.027865893984153206,
        "hi": 0.30103820641179335
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 2,
        "n": 20,
        "rate": 0.1,
        "lo": 0.027865893984153206,
        "hi": 0.30103820641179335
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 20,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.16113012549493322
       },
       "location_error": {
        "k": 2,
@@ -20887,7 +24087,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -20976,7 +24190,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -21065,7 +24293,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -21154,12 +24396,26 @@
        "lo": 0.07757093858414264,
        "hi": 0.20980521894809878
       },
-      "trap_presented": {
+      "trap_uncorrected": {
        "k": 13,
        "n": 100,
        "rate": 0.13,
        "lo": 0.07757093858414264,
        "hi": 0.20980521894809878
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
+      },
+      "trap_self_retracted": {
+       "k": 0,
+       "n": 100,
+       "rate": 0.0,
+       "lo": 0.0,
+       "hi": 0.03699480747600191
       },
       "location_error": {
        "k": 0,
@@ -21245,7 +24501,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -21334,7 +24604,21 @@
        "lo": null,
        "hi": null
       },
-      "trap_presented": {
+      "trap_uncorrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_source_corrected": {
+       "k": 0,
+       "n": 0,
+       "rate": null,
+       "lo": null,
+       "hi": null
+      },
+      "trap_self_retracted": {
        "k": 0,
        "n": 0,
        "rate": null,
@@ -21467,12 +24751,26 @@
       "lo": 0.08337321362087696,
       "hi": 0.2851448096176598
      },
-     "trap_presented": {
-      "k": 8,
+     "trap_uncorrected": {
+      "k": 4,
       "n": 50,
-      "rate": 0.16,
-      "lo": 0.08337321362087696,
-      "hi": 0.2851448096176598
+      "rate": 0.08,
+      "lo": 0.031549003255790686,
+      "hi": 0.18838502545063704
+     },
+     "trap_source_corrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_self_retracted": {
+      "k": 4,
+      "n": 50,
+      "rate": 0.08,
+      "lo": 0.031549003255790686,
+      "hi": 0.18838502545063704
      },
      "location_error": {
       "k": 3,
@@ -21556,12 +24854,26 @@
       "lo": 0.020614596364630478,
       "hi": 0.16217343370877002
      },
-     "trap_presented": {
+     "trap_uncorrected": {
       "k": 3,
       "n": 50,
       "rate": 0.06,
       "lo": 0.020614596364630478,
       "hi": 0.16217343370877002
+     },
+     "trap_source_corrected": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
+     },
+     "trap_self_retracted": {
+      "k": 0,
+      "n": 50,
+      "rate": 0.0,
+      "lo": 0.0,
+      "hi": 0.07135003417431873
      },
      "location_error": {
       "k": 2,

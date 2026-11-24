@@ -1,10 +1,12 @@
 """quotecheck: finding the quotations in a text."""
 
 import random
+import time
 
 import pytest
 
 from quotecheck import extract_quotes
+from quotecheck.extract import MAX_DEPTH, MAX_SPAN
 
 
 def texts(s):
@@ -119,6 +121,67 @@ def test_quotes_do_not_cross_block_quotes():
     quotes, _ = extract_quotes("He wrote “never closed\n\n> block words\n\nand then it ends” here")
     assert [(q.text, q.kind, q.closed) for q in quotes] == \
         [("never closed", "curly", False), ("block words", "block", True)]
+
+
+@pytest.mark.parametrize("tail, unwrapped", [
+    ("", True), (" — Author", True), (" -- Author, *Book*", True), ("**", True), (".", True), ("\n— Author", True), (" (p. 4).", True),
+    (" [12]", True), ("*" * 300, True), (" — " + "x" * 120, True), (" — " + "x" * 121, False), (" — A\nB", False), (" he said", False),
+])
+def test_what_may_follow_a_quote_in_a_block_quote(tail, unwrapped):
+    block = "\n".join("> " + line for line in ('"one two three four"' + tail).split("\n"))
+    assert kinds(block) == (["straight"] if unwrapped else ["block"])
+
+
+def test_quote_over_paragraphs_is_bounded():
+    assert MAX_SPAN == 20_000
+    for distance, found in [(MAX_SPAN - 1, True), (MAX_SPAN, False)]:  # from the opening to the closing mark
+        text = "x “one\n\n" + "a" * (distance - 6) + "” y"
+        assert text.index("”") - text.index("“") == distance
+        assert [q.closed for q in extract_quotes(text)[0]] == ([True] if found else [False])
+    # every paragraph repeats the opening mark, the last one is too far away
+    for n, found in [(MAX_SPAN - 7, True), (MAX_SPAN - 6, False)]:
+        text = "“" + "a" * n + "\n\n“b\n\n“c d”"
+        assert len(extract_quotes(text)[0]) == (1 if found else 2)
+        assert extract_quotes(text)[0][0].closed is found
+
+
+def test_nesting_is_bounded():
+    assert MAX_DEPTH == 32
+    for depth in (1, MAX_DEPTH):
+        quotes, stray = extract_quotes("“a " * depth + "b”" * depth)
+        assert [(q.start, q.closed) for q in quotes] == [(1, True)] and stray == 0
+    quotes, _ = extract_quotes("“a " * (MAX_DEPTH + 1) + "b”" * (MAX_DEPTH + 1))
+    assert [(q.start, q.closed) for q in quotes] == [(1, False), (4, True)]  # the outermost mark is given up
+
+
+def test_escaped_marks():
+    assert texts('x \\"one two\\" y \\"three four\\" z') == ["one two", "three four"]
+    text = 'x \\"one two\\" y'
+    q = extract_quotes(text)[0][0]
+    assert text[q.start : q.end] == q.text == "one two" and q.kind == "straight"
+    assert texts('"outer \\"one\\" outer" and \\"two\\"') == ['outer \\"one\\" outer', "two"]
+    assert texts('\\"never closed\n\n"closed" and \\"also closed\\"') == ["closed", "also closed"]
+    assert texts('\\"a lone one') == []
+    assert texts('"one \\" two" and \\"three four\\" end') == ['one \\" two', "three four"]
+
+
+def test_windows_line_ends_and_byte_order_mark():
+    text = "\ufeff> block one\r\n> block two\r\n\r\nIt says “first\r\n\r\nsecond” and 'third\r\nfourth'.\r\n"
+    quotes, stray = extract_quotes(text)
+    assert [q.text for q in quotes] == ["block one\nblock two", "first\r\n\r\nsecond", "third\r\nfourth"] and stray == 0
+    assert text[quotes[0].start : quotes[0].end] == "block one\r\n> block two"
+    assert [text[q.start : q.end] for q in quotes[1:]] == [q.text for q in quotes[1:]]
+    assert [q.text.replace("\r\n", "\n") for q in quotes] == texts(text.replace("\r\n", "\n"))
+
+
+@pytest.mark.parametrize("text", [
+    '> "a b"' + " " * 200_000 + "x", '> "a b"' + "*" * 200_000 + "x", '> "a b"' + "*_ " * 70_000 + "— " + "* " * 70_000 + "x\n> y",
+    '> "a b" —' + " " * 100_000 + "x\n> y", "„a 6\"\n\n" * 60_000, "“a\n\n" * 50_000, "'a " * 70_000, '\\"a ' * 50_000,
+], ids=["spaces", "asterisks", "marks", "dash", "paragraphs", "unclosed", "single", "escaped"])
+def test_cost_is_linear(text):
+    start = time.perf_counter()
+    extract_quotes(text)
+    assert time.perf_counter() - start < 5  # quadratic: half a minute or more; linear: well under a second
 
 
 def test_random_text_never_crashes_and_positions_hold():

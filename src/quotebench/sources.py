@@ -23,6 +23,9 @@ from typing import Callable, Iterable
 from .textutil import clean_ws, html_to_text, split_sentences
 
 ROOT = Path(__file__).resolve().parents[2]
+IN_CHECKOUT = (ROOT / "config" / "models.yaml").exists()
+NOT_A_CHECKOUT = ("quotebench needs a checkout of its repository (data, sources and results are not in the installed "
+                  "package): git clone https://github.com/codebymax10/quotebench, then pip install -e . there")
 SOURCES_DIR = ROOT / "sources"
 RAW_DIR = SOURCES_DIR / "raw"
 PARSED_DIR = SOURCES_DIR / "parsed"

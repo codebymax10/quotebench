@@ -9,9 +9,31 @@ import typer
 app = typer.Typer(add_completion=False, no_args_is_help=True, help="QuoteBench: verbatim quotation benchmark.")
 
 
+def fail(message: str) -> typer.Exit:
+    """Print a one-line error; ``raise fail(...)``."""
+    typer.echo(f"Error: {message}", err=True)
+    return typer.Exit(1)
+
+
+def open_cache():
+    from . import runner as R
+
+    cache = R.Cache()
+    if cache.imported:
+        typer.echo(f"{cache.imported} published answers were missing from results/cache.sqlite; added from results/raw")
+    if cache.differing:
+        typer.echo(f"{cache.differing} cached answers are not the published ones in results/raw; the cached ones are used",
+                   err=True)
+    return cache
+
+
 @app.callback()
 def main() -> None:
     """QuoteBench: how often do language models fabricate or alter verbatim quotations?"""
+    from .sources import IN_CHECKOUT, NOT_A_CHECKOUT
+
+    if not IN_CHECKOUT:
+        raise fail(NOT_A_CHECKOUT)
 
 
 @app.command()
@@ -64,6 +86,8 @@ def run(
     """Query models (Anthropic API / OpenRouter). Cached: re-running resumes and never pays twice."""
     import asyncio
 
+    import httpx
+
     from . import runner as R
 
     cfg = R.load_config()
@@ -73,8 +97,13 @@ def run(
     model_ids = models or (cfg["dry_run_models"] if dry_run else [m["id"] for m in cfg["models"]])
     qids = cfg["dry_run_questions"] if dry_run else None
     jobs = R.build_jobs(model_ids, conditions, qids, repeats=not dry_run)
-    pricing = R.fetch_pricing(model_ids)
-    cache = R.Cache()
+    try:
+        pricing = R.fetch_pricing(model_ids)
+    except httpx.HTTPError as e:
+        raise fail(f"cannot fetch the model prices from {R.MODELS_URL}: {type(e).__name__} {e}".rstrip())
+    except RuntimeError as e:
+        raise fail(str(e))
+    cache = open_cache()
     routes = R.model_routes(cfg)
     limits = R.token_limits(routes)
     for m, used in cache.max_tokens_used().items():
@@ -86,31 +115,42 @@ def run(
     if redo:
         typer.echo(f"{len(redo)} cached answers were cut off at a lower token limit; they will be asked again "
                    f"with max_tokens={settings['max_tokens']} (DECISIONS D16)")
-        if not estimate:
-            out = R.ROOT / "results" / "archive" / "cut_off_at_lower_limit"
-            for p in R.archive_cut_off(cache, settings["max_tokens"], out, limits):
-                typer.echo(f"  old answers kept in {p.relative_to(R.ROOT)}")
     rows = R.estimate(jobs, pricing, settings, cache, limits)
-    typer.echo(f"{'model':38s} {'calls':>6s} {'expected':>9s} {'worst':>8s}  basis")
+    typer.echo(f"{'model':38s} {'calls':>6s} {'tokens':>10s} {'expected':>9s} {'worst':>8s}  basis")
     for r in rows:
-        typer.echo(f"{r['model']:38s} {r['calls']:6d} ${r['expected_cost']:8.2f} ${r['worst_cost']:7.2f}  {r['basis']}")
-    typer.echo(f"{'TOTAL':38s} {sum(r['calls'] for r in rows):6d} ${sum(r['expected_cost'] for r in rows):8.2f} "
+        typer.echo(f"{r['model']:38s} {r['calls']:6d} {r['expected_tokens']:10,d} ${r['expected_cost']:8.2f} ${r['worst_cost']:7.2f}  {r['basis']}")
+    typer.echo(f"{'TOTAL':38s} {sum(r['calls'] for r in rows):6d} {sum(r['expected_tokens'] for r in rows):10,d} ${sum(r['expected_cost'] for r in rows):8.2f} "
                f"${sum(r['worst_cost'] for r in rows):7.2f}")
     archived = sum(R.archived_costs().values())
-    typer.echo(f"already spent: ${cache.total_cost() + archived:.4f} (cached answers ${cache.total_cost():.4f} "
+    spent = cache.total_cost() + archived
+    typer.echo("(tokens: expected prompt + output tokens; costs in USD, expected and worst case)")
+    typer.echo(f"already spent: ${spent:.4f} (cached answers ${cache.total_cost():.4f} "
                f"+ replaced/archived answers ${archived:.4f})")
     if estimate:
         return
     if max_cost is None and not dry_run:
         raise typer.BadParameter("a full run needs --max-cost (SPEC §6)")
     cap = max_cost if max_cost is not None else 1.0
+    n_calls = sum(r["calls"] for r in rows)
+    if n_calls and cap <= spent:
+        raise fail(f"the cap of ${cap:.2f} counts all recorded spend, which is already ${spent:.2f} (results/raw and "
+                   f"results/archive included), so none of the {n_calls} calls can be made; pass a --max-cost above ${spent:.2f}")
 
     def progress(s):
         if s["done"] % 50 == 0 or s["done"] == len(jobs):
             typer.echo(f"{s['done']} done, {s['errors']} errors, total spent ${s['spent']:.4f}")
 
     needs_openrouter = any(routes[m]["api"] == "openrouter" for m in model_ids)
-    api_key = R.load_api_key() if needs_openrouter else None
+    try:
+        api_key = R.load_api_key() if needs_openrouter else None
+    except RuntimeError as e:
+        raise fail(str(e))
+    if redo:
+        out = R.ROOT / "results" / "archive" / "cut_off_at_lower_limit"
+        for p in R.archive_cut_off(cache, settings["max_tokens"], out, limits):
+            typer.echo(f"  old answers kept in {p.relative_to(R.ROOT)}")
+    if n_calls or retry_errors:
+        R.save_pricing(pricing)
     stats = asyncio.run(R.run_jobs(jobs, cache, pricing, settings, api_key, cap,
                                    retry_errors=retry_errors, progress=progress, routes=routes,
                                    spent_before=archived))
@@ -129,23 +169,40 @@ def score():
     """Label every cached response -> results/scored.parquet."""
     from . import report as Rep
 
-    df = Rep.score_all()
+    cache = open_cache()
+    for problem in Rep.incomplete_models(tuple(r[k] for k in Rep.CALL) for r in cache.rows()):
+        typer.echo(f"incomplete: {problem}", err=True)
+    df = Rep.score_all(cache)
     typer.echo(f"{len(df)} responses scored -> results/scored.parquet")
     typer.echo(df.groupby(["model", "label"]).size().unstack(fill_value=0).to_string())
 
 
 @app.command()
-def report():
+def report(
+    draft: bool = typer.Option(False, "--draft", help="Build the charts and the page from incomplete answers, marked as a "
+                                                      "draft; README.md and PAPER.md are left alone."),
+):
     """Score all responses, then write results/summary.json, results/figures/ and docs/index.html."""
     from . import report as Rep
 
-    df = Rep.score_all()
+    cache = open_cache()
+    incomplete = Rep.incomplete_models(tuple(r[k] for k in Rep.CALL) for r in cache.rows())
+    for problem in incomplete:
+        typer.echo(f"incomplete: {problem}", err=True)
+    if incomplete and not draft:
+        raise fail("not every model has all its answers, so nothing was written (run the missing calls, or use --draft)")
+    df = Rep.score_all(cache)
     summary = Rep.summarise(df)
+    if draft:
+        summary["status"] = "draft"
+        Rep.write_summary(summary)
     figs = Rep.make_figures(summary)
     page = Rep.build_page(summary)
-    Rep.update_readme(summary)
     typer.echo(f"{len(df)} responses scored; summary -> results/summary.json; {len(figs)} figures -> results/figures/")
     typer.echo(f"leaderboard -> {page.relative_to(Rep._ROOT)}  (status: {summary['status']})")
+    if not draft:
+        for block in Rep.update_readme(summary):
+            typer.echo(f"WARNING: no generated block in {block}; that table was not updated", err=True)
 
 
 validate_app = typer.Typer(no_args_is_help=True, help="Human validation of the scorer (SPEC §8).")
@@ -169,7 +226,10 @@ def validate_agree():
 
     from . import validate as V
 
-    r = V.agreement()
+    try:
+        r = V.agreement()
+    except (FileNotFoundError, ValueError) as e:
+        raise fail(str(e))
     typer.echo(f"labelled {r['n_labelled']} / {r['n_total']}")
     typer.echo(f"agreement {r['agreement']:.1%}   Cohen's kappa {r['kappa']:.3f}")
     typer.echo("\nconfusion (rows = human, columns = scorer):")

@@ -53,13 +53,124 @@ def test_lookup_strict_counts_unreadable_answers_as_wrong():
 
 
 def test_trick_question_shares_split_by_what_the_answer_says():
-    m = metrics(1, 0, traps_presented=2, traps_corrected=3, traps=10)
-    assert (m["trap_failure"]["k"], m["trap_failure"]["n"]) == (5, 10)  # any quote is a failure
-    assert (m["trap_presented"]["k"], m["trap_presented"]["n"]) == (2, 10)
-    assert (m["trap_presented"]["lo"], m["trap_presented"]["hi"]) == (R.wilson(2, 10)["lo"], R.wilson(2, 10)["hi"])
+    m = metrics(1, 0, traps_uncorrected=2, traps_corrected=3, traps=10)
+    assert (m["trap_failure"]["k"], m["trap_failure"]["n"]) == (5, 10)  # a quote is a failure, corrected or not
+    assert (m["trap_uncorrected"]["k"], m["trap_uncorrected"]["n"]) == (2, 10)
+    assert (m["trap_uncorrected"]["lo"], m["trap_uncorrected"]["hi"]) == (R.wilson(2, 10)["lo"], R.wilson(2, 10)["hi"])
     assert [k for _, k in R.trap_segments(m)] == [2, 3]
-    # the flag changes nothing for questions that have a real answer
-    assert quote_metrics(frame([{"label": "EXACT", "flags": "SOURCE_CORRECTED"}]))["correct"]["k"] == 1
+    # the flags change nothing for questions that have a real answer
+    assert quote_metrics(frame([{"label": "EXACT", "flags": "SOURCE_CORRECTED,SELF_RETRACTED"}]))["correct"]["k"] == 1
+
+
+def test_the_two_kinds_of_correction_are_counted_apart():
+    trap = {"label": "TRAP_FABRICATED", "should_abstain": True}
+    m = quote_metrics(frame([{**trap, "flags": f} for f in ("", "SOURCE_CORRECTED", "MULTIPLE_ANSWERS,SELF_RETRACTED",
+                                                            "SOURCE_CORRECTED,SELF_RETRACTED")]
+                            + [{"label": "CORRECT_REFUSAL", "should_abstain": True, "flags": "SELF_RETRACTED"}]))
+    assert [m[f"trap_{x}"]["k"] for x in ("failure", "uncorrected", "source_corrected", "self_retracted")] == [4, 1, 2, 2]
+    assert {m[f"trap_{x}"]["n"] for x in ("failure", "uncorrected", "source_corrected", "self_retracted")} == {5}
+
+
+# known 95% Wilson score intervals (R: prop.test(k, n, correct = FALSE); Newcombe 1998 for 81/263)
+@pytest.mark.parametrize("k, n, lo, hi", [(81, 263, 0.2553, 0.3662), (15, 148, 0.0624, 0.1605), (0, 20, 0.0, 0.1611),
+                                          (1, 29, 0.0061, 0.1718), (5, 10, 0.2366, 0.7634), (10, 10, 0.7225, 1.0)])
+def test_wilson_interval_known_values(k, n, lo, hi):
+    w = R.wilson(k, n)
+    assert (w["k"], w["n"], w["rate"]) == (k, n, k / n)
+    assert w["lo"] == pytest.approx(lo, abs=1e-4) and w["hi"] == pytest.approx(hi, abs=1e-4)
+
+
+def test_wilson_of_nothing():
+    assert R.wilson(0, 0) == {"k": 0, "n": 0, "rate": None, "lo": None, "hi": None}
+
+
+def test_strict_base_has_no_trick_questions():
+    m = quote_metrics(frame([{"label": "EXACT"}, {"label": "UNPARSEABLE"}, {"label": "UNPARSEABLE", "should_abstain": True},
+                             {"label": "TRAP_FABRICATED", "should_abstain": True}]))
+    assert (m["correct_strict"]["k"], m["correct_strict"]["n"], m["unparseable"]) == (1, 2, 1)
+    assert (m["correct_of_all"]["n"], m["trap_failure"]["n"]) == (2, 1)  # an unreadable trick answer is in no rate
+
+
+def test_location_errors_are_counted_on_topic_questions_only():
+    m = quote_metrics(frame([
+        {"label": "EXACT", "task": "topic", "location_correct": True}, {"label": "WRONG_PLACE", "task": "topic", "location_correct": False},
+        {"label": "ALTERED", "task": "topic", "location_correct": False}, {"label": "EXACT", "task": "topic", "location_correct": None},
+        {"label": "EXACT", "task": "reference", "location_correct": False}]))
+    assert (m["location_error"]["k"], m["location_error"]["n"]) == (2, 3)
+
+
+def test_lookup_unparseable_has_the_base_of_the_strict_rate():
+    m = lookup_metrics(frame([{"label": "EXACT"}, {"label": "UNPARSEABLE"}, {"label": "UNPARSEABLE", "should_abstain": True}]))
+    assert m["unparseable"] == 1 == m["wrong_reference_strict"]["n"] - m["wrong_reference"]["n"]
+
+
+# --------------------------------------------------------------------------- summarise
+
+
+ROW = {"model": "x/a", "task": "reference", "text_id": "bible_kjv", "fame": "famous", "should_abstain": False, "flags": "",
+       "location_correct": None, "repeat": 0, "condition": "baseline", "label": "EXACT", "cost": 0.1, "provider": "H",
+       "served_model": "a-served", "timestamp": "2026-10-11T00:00:00", "completion_tokens": 10}
+
+
+@pytest.fixture
+def summarised(monkeypatch, tmp_path):
+    """Run ``summarise`` on a handful of rows of one model."""
+    monkeypatch.setattr(R, "SUMMARY_PATH", tmp_path / "summary.json")
+    monkeypatch.setattr(R, "archived_costs", lambda: {"x/a": 1.0})
+    monkeypatch.setattr(R, "load_config", lambda: {"models": [
+        {"id": "x/a", "label": "A", "provider": "X", "role": "main", "api": "anthropic", "api_model": "a-api"}]})
+
+    def run(rows, complete=True):
+        monkeypatch.setattr(R, "incomplete_models", lambda calls: [] if complete else ["x/a: 1 of 2 calls"])
+        return R.summarise(pd.DataFrame([{**ROW, **r} for r in rows]))
+    return run
+
+
+def test_only_the_main_run_is_counted(summarised):
+    s = summarised([{"question_id": "q1"}, {"question_id": "q2", "label": "ALTERED"}]
+                   + [{"question_id": "q1", "repeat": r, "label": "FABRICATED"} for r in (1, 2, 3)])
+    b = s["per_model"]["x/a"]["baseline"]
+    assert (b["correct_strict"]["k"], b["correct_strict"]["n"], b["fabricated"]["k"]) == (1, 2, 0)
+    m = s["models"][0]
+    assert m["calls_done"] == 5 and m["cost_usd"] == pytest.approx(1.5)  # repeats and replaced answers cost money too
+    assert (m["api_model"], m["served_models"]) == ("a-api", ["a-served"])
+
+
+def test_stability_needs_four_runs(summarised):
+    def runs(q, *labels, condition="baseline"):
+        return [{"question_id": q, "repeat": i, "label": x, "condition": condition} for i, x in enumerate(labels)]
+    s = summarised(runs("same", *["EXACT"] * 4) + runs("differs", *["EXACT"] * 3, "ALTERED") + runs("three", *["EXACT"] * 3)
+                   + runs("once", "EXACT") + runs("cautious", *["EXACT"] * 4, condition="cautious")
+                   + runs("same wrong", *["FABRICATED"] * 4))
+    st = s["per_model"]["x/a"]["stability"]
+    assert (st["k"], st["n"]) == (2, 3)
+
+
+def test_lookup_subset_is_the_questions_that_have_a_lookup_version(summarised):
+    s = summarised([{"question_id": "q1", "condition": c} for c in ("baseline", "cautious", "lookup")]
+                   + [{"question_id": "q2", "condition": c, "label": "ALTERED"} for c in ("baseline", "cautious")])
+    sub = s["per_model"]["x/a"]["lookup_subset"]
+    assert sub["n_questions"] == 1
+    assert [(sub[c]["correct_strict"]["k"], sub[c]["correct_strict"]["n"]) for c in ("baseline", "cautious")] == [(1, 1)] * 2
+    assert s["per_model"]["x/a"]["baseline"]["correct_strict"]["n"] == 2
+
+
+def test_a_partial_summary_is_a_draft(summarised):
+    assert summarised([{"question_id": "q1"}])["status"] == "released"
+    assert summarised([{"question_id": "q1"}], complete=False)["status"] == "draft"
+
+
+def test_incomplete_models():
+    from quotebench.runner import build_jobs
+
+    models = [m["id"] for m in R.load_config()["models"]]
+    calls = [(m, j.question_id, j.condition, j.repeat) for m in models for j in build_jobs(["any"])]
+    assert R.incomplete_models(calls) == []
+    n = len(calls) // len(models)
+    assert R.incomplete_models(calls[1:]) == [f"{models[0]}: {n - 1} of {n} calls"]
+    assert R.incomplete_models(calls[n:]) == [f"{models[0]}: 0 of {n} calls"]
+    old = [*calls[1:], (models[0], "t9-gone-0001", "baseline", 0)]  # as many calls, but not the same ones
+    assert R.incomplete_models(old) == [f"{models[0]}: {n - 1} of {n} calls, and 1 that are not in the test set"]
 
 
 def test_host_errors_are_reported_and_excluded():
@@ -107,12 +218,12 @@ def test_n_range():
 # ---------------------------------------------------------------------------- a small summary
 
 
-def metrics(correct, altered, unreadable=0, traps_presented=1, traps_corrected=1, traps=4, declined=3):
+def metrics(correct, altered, unreadable=0, traps_uncorrected=1, traps_corrected=1, traps=4, declined=3):
     rows = ([{"label": "EXACT"}] * correct + [{"label": "ALTERED"}] * altered + [{"label": "UNPARSEABLE"}] * unreadable
             + [{"label": "ABSTAINED"}] * declined
-            + [{"label": "TRAP_FABRICATED", "should_abstain": True}] * traps_presented
+            + [{"label": "TRAP_FABRICATED", "should_abstain": True}] * traps_uncorrected
             + [{"label": "TRAP_FABRICATED", "should_abstain": True, "flags": "SHORT_QUOTE,SOURCE_CORRECTED"}] * traps_corrected
-            + [{"label": "CORRECT_REFUSAL", "should_abstain": True}] * (traps - traps_presented - traps_corrected))
+            + [{"label": "CORRECT_REFUSAL", "should_abstain": True}] * (traps - traps_uncorrected - traps_corrected))
     m = quote_metrics(frame(rows))
     m["by_text"] = {"bible_kjv": quote_metrics(frame(rows))}
     m["by_fame"] = {"famous": quote_metrics(frame(rows)), "random": quote_metrics(frame(rows))}
@@ -131,7 +242,7 @@ def per_model(correct, altered, unreadable, stable):
 def summary():
     def model(id_, label, calls=100, dates=("2026-10-11", "2026-10-14")):
         return {"id": id_, "label": label, "provider": "X", "role": "main", "note": None, "api": "openrouter",
-                "hosts": ["H"], "calls_done": calls, "cost_usd": 1.0, "run_dates": list(dates), "mean_output_tokens": 1.0}
+                "api_model": id_, "served_models": [id_], "hosts": ["H"], "calls_done": calls, "cost_usd": 1.0, "run_dates": list(dates), "mean_output_tokens": 1.0}
     return {
         "benchmark": "QuoteBench", "version": "v1.0", "generated": "2026-11-24T00:00:00+00:00", "status": "released",
         "n_questions": 700, "expected_calls_per_model": 100,
@@ -199,16 +310,18 @@ def test_figures_2_and_3_use_the_strict_base(drawn):
 
 def test_figure_4_shows_both_parts(drawn):
     flat = drawn()[1][3].replace("\n", " ")
-    assert "50.0%, 25.0% as genuine" in flat
-    assert "Presented as from the named text" in flat and "Said itself that it is not from the named text" in flat
-    assert "gave a quote" in flat and "any quote is a failure" in flat
+    assert "50.0%, 25.0% uncorrected" in flat
+    assert "No correction in the answer" in flat and "Corrected in the same answer" in flat
+    assert "gave a quote" in flat and "a failure, corrected or not" in flat and "cannot_quote counts as declining" in flat
 
 
 def test_no_claim_that_a_model_fell_for_anything(summary, drawn, page):
     texts = [*drawn()[1], page, *(make(summary) for make in R.TABLES.values())]
     assert not any(re.search(r"\bfell for|fallen for", t, re.I) for t in texts)
+    assert not any(re.search(r"genuine|presented as|always a failure", t, re.I) for t in texts)
     for t in (R.readme_table(summary), page):
-        assert "Gave a quote on a trick question" in t and "of which presented as genuine" in t
+        assert "Gave a quote on a trick question" in t and "of which with no correction" in t
+        assert re.search(r"marked `?cannot_quote`? counts as declining, even if it also contains a quote", t)
 
 
 def test_host_errors_are_named_under_the_table(summary):
@@ -254,7 +367,63 @@ def test_page_is_one_static_file_with_the_paper_link(page):
     assert "__SUMMARY_JSON__" not in page
     assert 'href="https://github.com/codebymax10/quotebench/blob/main/PAPER.md"' in page
     assert "paper at release" not in page
-    assert not re.search(r'<(script|link|img)[^>]+(src|href)=', page)
+    assert not re.search(r'<(script|link|img)[^>]+(src|href)="(?!data:)', page)  # the icon is a data URI
+    assert page.count('<link rel="icon" href="data:image/svg+xml,') == 1
+
+
+def test_data_cannot_close_the_script_element(summary, tmp_path, monkeypatch):
+    monkeypatch.setattr(R, "PAGE_PATH", tmp_path / "index.html")
+    summary["models"][0]["note"] = "</script><b>x</b>"
+    page = R.build_page(summary).read_text(encoding="utf-8")
+    assert page.count("</script>") == R.PAGE_TEMPLATE.read_text(encoding="utf-8").count("</script>")
+    data = re.search(r'<script type="application/json" id="data">(.*?)</script>', page, re.S)[1]
+    assert json.loads(data) == json.loads(json.dumps(summary))  # and it is still the same data
+
+
+def test_page_discloses_how_it_was_made(page):
+    text = re.sub(r"\s+", " ", page)
+    for words in ("drafted with Claude", "not reviewed line by line by the author", "code and the paper were written with Claude",
+                  "corrected after the results were seen", "DECISIONS D19", "Not peer reviewed", "was not checked by humans",
+                  "finished under the earlier 2,000-token limit were kept", "digits"):
+        assert words in text, words
+    assert "<details" not in text[text.index("What to know"):text.index("Leaderboard</h2>")]  # visible, not folded away
+    ms = [{"id": i, "provider": p} for i, p in (("b", "OpenAI"), ("a", "Anthropic"), ("c", "Anthropic"), ("d", "Anthropic"))]
+    rates = {i: {"baseline": {"correct_strict": {"rate": r}}} for i, r in (("a", .9), ("c", .8), ("b", .7), ("d", .6))}
+    assert js("claudeNote(args[0], args[1])", ms, rates) == "3 of the 4 models are Claude models, including the top 2"
+
+
+def test_page_shows_what_the_api_was_asked_for_and_what_answered(page):
+    assert "Model ID (API)" in page and "m.api_model" in page and "m.served_models" in page
+    assert "including answers that were later replaced" in page and "Cost incl. replaced answers" in page
+
+
+def test_page_tiles_and_condition_choice(page):
+    assert js("modelsTile('released', 9, 9)") == ["Models", "9"]
+    assert js("modelsTile('draft', 8, 9)") == ["Models finished", "8 of 9"]
+    assert "localStorage" not in page and 'let cond = "baseline"' in page
+
+
+def test_model_column_is_sticky_at_every_width(page):
+    css = page[page.index("<style>"):page.index("</style>")]
+    assert re.search(r"^#board th:first-child \{ position: sticky; left: 0;", css, re.M)  # outside any media query
+
+
+def contrast(a, b):
+    def lum(h):
+        c = [int(h[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+        r, g, b = (x / 12.92 if x <= 0.03928 else ((x + 0.055) / 1.055) ** 2.4 for x in c)
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+    hi, lo = sorted((lum(a), lum(b)), reverse=True)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+def test_text_contrast(page):
+    css = page[page.index("<style>"):page.index("</style>")]
+    for block in re.findall(r"\{\s*color-scheme: (?:light|dark);.*?\}", css, re.S):
+        v = dict(re.findall(r"--([\w-]+): (#[0-9a-f]{6})", block))
+        for ink in ("ink", "ink2", "muted", "link"):
+            assert all(contrast(v[ink], v[bg]) >= 4.5 for bg in ("page", "surface")), (ink, v[ink])
+    assert "a { color: var(--link); }" in css
 
 
 def test_page_shows_the_range_of_run_dates():
@@ -322,12 +491,13 @@ def block(name, body="old"):
 
 
 def test_missing_files_and_markers_are_left_alone(summary, docs):
-    assert R.update_readme(summary) is False
+    everything = ["README.md: results", "README.md: stability", *(f"PAPER.md: {n}" for n in R.TABLES)]
+    assert R.update_readme(summary) == everything
     assert not list(docs.iterdir())
     for text in ("no markers\n", "<!-- results:start -->\nprose\n", "<!-- fame:end -->\nx\n<!-- fame:start -->\n"):
         (docs / "README.md").write_text(text, encoding="utf-8")
         (docs / "PAPER.md").write_text(text, encoding="utf-8")
-        assert R.update_readme(summary) is False
+        assert R.update_readme(summary) == everything
         assert (docs / "README.md").read_text(encoding="utf-8") == text
         assert (docs / "PAPER.md").read_text(encoding="utf-8") == text
 
@@ -344,7 +514,7 @@ def test_all_tables_in_readme_and_paper(summary, docs):
     text = "intro\n\n" + "\n\nprose\n\n".join(block(n) for n in names) + "\n\nend\n"
     (docs / "README.md").write_text(text.replace("old", "OLD"), encoding="utf-8")
     (docs / "PAPER.md").write_text(text, encoding="utf-8")
-    assert R.update_readme(summary) is True
+    assert R.update_readme(summary) == []
     paper = (docs / "PAPER.md").read_text(encoding="utf-8")
     assert paper == (docs / "README.md").read_text(encoding="utf-8")
     assert "old" not in paper and paper.count("prose") == 5 and paper.startswith("intro") and paper.endswith("end\n")
@@ -352,7 +522,8 @@ def test_all_tables_in_readme_and_paper(summary, docs):
         body = re.search(rf"<!-- {n}:start -->(.*?)<!-- {n}:end -->", paper, re.S)[1]
         assert body.index("Model A") < body.index("Model B")  # strict order everywhere
     before = paper
-    R.update_readme(summary)
+    (docs / "README.md").write_text(block("stability"), encoding="utf-8")
+    assert R.update_readme(summary) == ["README.md: results"]  # the missing block is named
     assert (docs / "PAPER.md").read_text(encoding="utf-8") == before  # idempotent
 
 

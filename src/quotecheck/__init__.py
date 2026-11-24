@@ -15,6 +15,8 @@ Labels (D15: only EXACT is a correct quotation):
     ALTERED     not exact: a real passage with words changed, added or dropped (>= lower, 0.80)
     FABRICATED  nothing similar enough in the source (below lower)
 
+The similarity is 1 only for EXACT. An EXACT quote with flags needs reading: see README.md.
+
 What it does not do: it does not check paraphrases, or quotations from texts it was not given;
 it does not say whether a quotation is used fairly or attributed correctly. The split between
 MINOR, ALTERED and FABRICATED is approximate and was not checked against human labels.

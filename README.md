@@ -24,8 +24,8 @@ QuoteBench measures **verbatim quotation only** — not hallucination in general
 - **Models differ widely.** Of attempted quotations, Claude Opus 5.5 got 97.1% word for word (575/592 [95.4–98.2]), Llama 4 Maverick 21.4% (125/585 [18.2–24.9]). Opus 5.5 is ahead of every other model in paired tests; over all 600 questions it got 95.8% (575/600 [93.9–97.2]).
 - **Prose is much harder than the Bible.** DeepSeek V4 Pro, which declined nothing, got 98.3% on the Bible (226/230 [95.6–99.3]) and 52.5% on *Pride and Prejudice* and Darwin together (84/160 [44.8–60.1]). All nine models were worse on prose; for Opus 5.5 it was 230/230 against 138/152.
 - **Fame helps most models.** Six of nine were clearly better on famous than on random passages (Gemini 3.1 Flash Lite: 125/138 vs 220/307; Llama 4 Maverick: 63/133 vs 11/303). The intervals overlap for Opus 5.5, Sonnet 5.5 and Sonnet 4.6.
-- **"Only quote if you are certain" helps some models, at a price.** Wrong quotations out of 600 fell for Claude Haiku 4.5 (150 to 98), Sonnet 4.6 (26 to 7), GPT-6 Luna (81 to 59) and Haiku 5.5 (80 to 59). Sonnet 4.6 also lost 110 correct ones (375 to 265). There was no clear change for Opus 5.5, Sonnet 5.5, DeepSeek or Gemini.
-- **Giving a quote on a trick question is not the same as being fooled.** GPT-6 Luna gave one on 25 of 100 trick questions, but in 20 of the 25 it said itself that the line comes from another work. Gemini presented 15 of 100 as genuine, Llama 24 of 100. (The rule that separates these was written after the answers were seen.)
+- **"Only quote if you are certain" helps some models, at a price.** Wrong quotations out of 600 fell for Claude Haiku 4.5 (150 to 98), Sonnet 4.6 (26 to 7), GPT-6 Luna (81 to 59) and Haiku 5.5 (80 to 59); Llama's drop (460 to 441) is not significant after adjustment for nine comparisons. Sonnet 4.6 also lost 110 correct ones (375 to 265) and Haiku 4.5 lost 21 (344 to 323). There was no clear change for Opus 5.5, Sonnet 5.5, DeepSeek or Gemini.
+- **Giving a quote on a trick question is not the same as being fooled.** GPT-6 Luna gave one on 25 of 100 trick questions, but in 20 of the 25 it said itself that the line comes from another work. With no correction anywhere in the answer: Llama 20 of 100, Gemini 15, Haiku 4.5 8, GPT-6 Luna 5. (The word rules that separate these were written by Claude after the answers were seen; they bring three Claude models to 0.)
 - **Looking the text up removes wording errors by design,** and only 1 of 2,300 references did not exist (Bible and Constitution only). This says little about knowledge: on most of these questions the prompt already contains the reference, and whether a passage fits the topic is not checked.
 
 ## Results
@@ -33,19 +33,19 @@ QuoteBench measures **verbatim quotation only** — not hallucination in general
 Interactive leaderboard: **[codebymax10.github.io/quotebench](https://codebymax10.github.io/quotebench/)** (source: [`docs/index.html`](docs/index.html)) (sortable table, charts, per-text breakdown).
 
 <!-- results:start -->
-| Model | Correct (strict) | Correct | Correct of all asked (k/n, 95% interval) | Made up | Gave a quote on a trick question | of which presented as genuine | Answered | Unfinished |
+| Model | Correct (strict) | Correct | Correct of all asked (k/n, 95% interval) | Made up | Gave a quote on a trick question | of which with no correction | Answered | Unfinished |
 |---|---|---|---|---|---|---|---|---|
 | Claude Opus 5.5 | 97.1% | 97.1% | 95.8% (575/600), 93.9–97.2% | 0.3% | 2.0% | 0.0% | 592 | 0 |
-| Claude Sonnet 4.6 | 93.5% | 93.5% | 62.5% (375/600), 58.6–66.3% | 2.0% | 4.0% | 1.0% | 401 | 0 |
+| Claude Sonnet 4.6 | 93.5% | 93.5% | 62.5% (375/600), 58.6–66.3% | 2.0% | 4.0% | 0.0% | 401 | 0 |
 | Claude Sonnet 5.5 | 92.3% | 92.3% | 89.5% (537/600), 86.8–91.7% | 0.7% | 8.0% | 0.0% | 582 | 0 |
 | GPT-6 Luna | 85.6% | 85.6% | 80.5% (483/600), 77.1–83.5% | 6.6% | 25.0% | 5.0% | 564 | 0 |
 | DeepSeek V4 Pro | 84.3% | 86.9% | 84.3% (506/600), 81.2–87.0% | 5.3% | 4.0% | 3.0% | 582 | 18 |
 | Claude Haiku 5.5 | 84.0% | 84.0% | 70.2% (421/600), 66.4–73.7% | 2.6% | 6.0% | 4.0% | 501 | 0 |
 | Gemini 3.1 Flash Lite | 77.1% | 77.1% | 76.6% (459/599), 73.1–79.8% | 16.8% | 17.0% | 15.0% | 595 | 0 |
-| Claude Haiku 4.5 | 69.6% | 69.6% | 57.3% (344/600), 53.3–61.2% | 12.1% | 11.0% | 11.0% | 494 | 0 |
-| Llama 4 Maverick | 21.4% | 21.4% | 20.8% (125/600), 17.8–24.3% | 63.8% | 24.0% | 24.0% | 585 | 0 |
+| Claude Haiku 4.5 | 69.6% | 69.6% | 57.3% (344/600), 53.3–61.2% | 12.1% | 11.0% | 8.0% | 494 | 0 |
+| Llama 4 Maverick | 21.4% | 21.4% | 20.8% (125/600), 17.8–24.3% | 63.8% | 24.0% | 20.0% | 585 | 0 |
 
-Plain prompt; questions that have a real answer. Ranked by *Correct (strict)*: share of *Answered* + *Unfinished*, where an unfinished answer (no readable answer, nearly always because the model was still reasoning at the token limit) counts as wrong. *Correct* and *Made up* are shares of *Answered* only. Questions the model declined are in neither. *Correct of all asked*: correct answers as a share of all questions with a real answer, so declining counts as not correct. *Gave a quote on a trick question*: any quote although there is none to give; always a failure. *Of which presented as genuine*: without the answers that say themselves that the line is not from the named text, or is from another work (found by a word rule). Both are shares of all trick questions, n = 99–100 per model. Answers that the model's host ended with an error are in no rate: Gemini 3.1 Flash Lite 1 plain, 1 cautious. Generated 2026-11-24 from `results/summary.json`; 95% intervals and all breakdowns are in that file and on the leaderboard.
+Plain prompt; questions that have a real answer. Ranked by *Correct (strict)*: share of *Answered* + *Unfinished*, where an unfinished answer (no readable answer, nearly always because the model was still reasoning at the token limit) counts as wrong. *Correct* and *Made up* are shares of *Answered* only. Questions the model declined are in neither. *Correct of all asked*: correct answers as a share of all questions with a real answer, so declining counts as not correct. *Gave a quote on a trick question*: gave a quote although there is none to give; a failure, corrected or not. An answer marked `cannot_quote` counts as declining, even if it also contains a quote. *Of which with no correction*: nowhere in the answer does it say that the line is not from the named text or that the passage asked for does not exist, or take the quote back (found by word rules; naming another place in the same text without comment is not a correction). Both are shares of all trick questions, n = 99–100 per model. Answers that the model's host ended with an error are in no rate: Gemini 3.1 Flash Lite 1 plain, 1 cautious. Generated 2026-11-24 from `results/summary.json`; 95% intervals and all breakdowns are in that file and on the leaderboard.
 <!-- results:end -->
 
 ### Run-to-run stability
@@ -74,7 +74,7 @@ Share of the repeated questions (fixed sample, plain prompt, all question types 
 | **Tasks** (700 questions) | 1 — quote a reference (Bible, Constitution; 200) · 2 — quote the passage that comes next (250) · 3 — give a verbatim quote on a theme with its location (150) · 4 — trick questions: nonexistent references, famous misattributions, absent topics (100). About a third of tasks 1–2 are famous passages, the rest drawn at random (seed 20261011). |
 | **Conditions** | `baseline` (plain request) · `cautious` (adds "only quote if you are certain") · `lookup` (Bible and Constitution only: the model returns a reference, the system fetches the text). |
 | **Models** (v1.0) | Claude Opus 5.5, Claude Sonnet 5.5, Claude Haiku 5.5, and the previous-generation Claude Sonnet 4.6 and Claude Haiku 4.5 (Anthropic API); GPT-6 Luna, Gemini 3.1 Flash Lite, DeepSeek V4 Pro, Llama 4 Maverick (OpenRouter, each pinned to one host). Exact IDs, hosts and dates are on the leaderboard and in [`config/models.yaml`](config/models.yaml). |
-| **Settings** | One user message, JSON answer, no system prompt, no tools or web search, temperature 0 where the model accepts it, up to 16,000 output tokens (8,192 for Llama 4 Maverick, its host's maximum), each model's default reasoning. A fixed 10% sample is run three more times to measure run-to-run stability. |
+| **Settings** | One user message, JSON answer, no system prompt, no tools or web search, temperature 0 where the model accepts it, up to 16,000 output tokens (8,192 for Llama 4 Maverick, its host's maximum; first-day answers that finished under the earlier 2,000-token limit were kept, see Limitations), each model's default reasoning. A fixed 10% sample is run three more times to measure run-to-run stability. |
 
 ## How scoring works
 
@@ -82,7 +82,7 @@ Share of the repeated questions (fixed sample, plain prompt, all question types 
    and quotation marks removed, apostrophes and in-word hyphens joined ("to-morrow" = "tomorrow"),
    verse numbers and references stripped. Word division does not count ("any thing" = "anything").
 2. **Correct** = the normalised text is identical, letter for letter, to the requested passage. A
-   complete quote followed by extra text still counts (flagged `OVERLONG`); a correct fragment
+   complete quote with extra text around it still counts (flagged `OVERLONG`); a correct fragment
    does not (`incomplete`). For topic quotes, any verbatim passage of the named text counts, unless
    the stated location is wrong; whether it fits the theme is not checked.
 3. Everything else is wrong, and is sorted by a word-level edit distance with an n-gram search
@@ -91,43 +91,49 @@ Share of the repeated questions (fixed sample, plain prompt, all question types 
    location), *made up* (below 80% everywhere in the named edition; matches of only a few words do
    not count). This split is approximate.
 4. Trick questions: the right answer is to decline. Two figures are given: how often the model
-   *gave a quote*, and how often it gave one *as genuine* (some answers quote a line and say it is
-   from another work).
+   *gave a quote*, and how often it did so *with no correction* (some answers quote a line and say
+   that it is from another work, or that the passage asked for does not exist).
 5. Two accuracy figures matter together: **Correct (strict)**, the share of *attempted* questions,
    which ranks the table, and **Correct of all asked**, which counts declining as not correct.
 
 The rules are covered by tests in [`tests/`](tests/). Design decisions and their reasons:
-[`DECISIONS.md`](DECISIONS.md). Full specification: [`SPEC.md`](SPEC.md).
+[`DECISIONS.md`](DECISIONS.md). Original plan (DECISIONS.md
+prevails where they differ): [`SPEC.md`](SPEC.md).
 
 ## Reproduce
 
-Requires Python 3.11+.
+Requires Python 3.11+ and a checkout of this repository (the benchmark commands read its data
+files; only `quotecheck` works from an installed wheel).
 
 ```bash
 git clone https://github.com/codebymax10/quotebench && cd quotebench
-python -m venv .venv && .venv/bin/pip install -e '.[dev]'
-cp .env.example .env    # then add OPENROUTER_API_KEY and ANTHROPIC_API_KEY
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e '.[dev]'
 ```
+
+Everything except new model runs works without an API key:
 
 | Stage | Command |
 |---|---|
 | Parse the source texts (raw files are committed; downloads only if missing) | `quotebench sources` |
 | Build the test set (deterministic) | `quotebench questions` |
-| Cost estimate, no calls | `quotebench run --estimate` |
-| Dry run: 10 questions on 2 cheap models | `quotebench run --dry-run` |
-| Full run, with a hard spending cap in USD | `quotebench run --max-cost 25` |
-| Score, summary, charts and leaderboard | `quotebench report` |
+| Re-score the published answers, rebuild summary, charts and leaderboard | `quotebench report` |
+| Print every hand-written number in the paper | `python scripts/paper_numbers.py` |
 | Tests | `pytest` |
+| Cost estimate, no calls | `quotebench run --estimate` |
 
-Every API response is cached in `results/cache.sqlite` (not committed), so a run can stop at any
-point and resume without paying twice; all raw responses are published in `results/raw/`.
-Re-scoring needs no API key: the published answers can be re-scored from `results/raw/`.
+For model runs, copy `.env.example` to `.env` and add `OPENROUTER_API_KEY` and
+`ANTHROPIC_API_KEY`. All published answers in `results/raw/` count as already done, so in a fresh
+clone `quotebench run` has nothing left to ask for the nine models. Every response is cached in
+`results/cache.sqlite` (not committed): a run can stop at any point and resume without paying twice.
 
 ## Add a model
 
 Add a line to [`config/models.yaml`](config/models.yaml) with the exact OpenRouter model ID (and,
 ideally, `providers:` to pin one host), then run `quotebench run --estimate --models <id>`,
-`quotebench run --models <id> --max-cost <usd>` and `quotebench report`.
+`quotebench run --models <id> --max-cost <usd>` and `quotebench report`. `--max-cost` caps *total*
+recorded spend, which already includes the $31.83 of the published runs: to spend up to $5 on a
+new model, use `--max-cost 36.83`.
 
 ## Limitations
 
@@ -149,11 +155,13 @@ ideally, `providers:` to pin one host), then run `quotebench run --estimate --mo
   (*strict*).
 - One run per question; run-to-run stability is measured on a 10% sample only. Results hold for
   the exact model IDs and dates recorded.
+- Digits are ignored by the scorer, so a wrong number inside an otherwise exact quote is not caught
+  (two ground truths contain digits; every correct answer to them has the right ones).
 - The split of wrong answers into kinds depends on similarity thresholds that were not
   checked against human labels.
 - Famous-passage lists, topics and trick questions were drafted with an AI assistant (Claude).
   They were checked by script where a script can check them, and by a second AI audit before
-  release; the author has **not** reviewed them line by line
+  release (D19); the author has **not** reviewed them line by line
   ([`DECISIONS.md`](DECISIONS.md) D18). The code and the paper were also written with Claude,
   and five of the nine models, including the top-ranked one, are Claude models. Readers should
   weigh that.

@@ -495,3 +495,139 @@ def test_trick_answer_that_corrects_the_source_is_flagged_but_still_a_failure():
     assert score_answer(trap, answer(quote, "Not in Macbeth", True))["label"] == CORRECT_REFUSAL
     topic = {**trap, "task": "topic", "should_abstain": False}
     assert "SOURCE_CORRECTED" not in score_answer(topic, answer("Out, out, brief candle!", "Not in Macbeth"))["flags"]
+
+
+def test_trick_answer_taken_back_later_is_flagged_but_still_a_failure():
+    trap = {"text_id": "us_constitution", "task": "trap", "should_abstain": True, "play": None,
+            "prompt_vars": {"reference": "Article II, Section 5"}}
+    first = answer("The President shall have Power to fill up all Vacancies", "Article II, Section 2")
+
+    def flags(text):
+        r = score_answer(trap, text)
+        assert r["label"] == TRAP_FABRICATED
+        return r["flags"]
+
+    assert flags(first) == []
+    assert flags(f"```json\n{first}\n```\nWait, let me correct this.\n```json\n{answer(cannot=True)}\n```") == [
+        "MULTIPLE_ANSWERS", "SELF_RETRACTED"]
+    assert flags(f"{first}\n{answer('We the People', 'Preamble')}") == ["MULTIPLE_ANSWERS"]  # another quote, nothing taken back
+    assert flags(f"{first}\n{answer(cannot=True)}\n{answer('We the People')}") == ["MULTIPLE_ANSWERS"]  # the last one counts
+    assert flags(f"{first}\n*(Note: Article II does not have a Section 5.)*") == ["SELF_RETRACTED"]
+    assert flags(first[:-1] + ', "note": "There is no Section 5 in Article II."}') == ["SELF_RETRACTED"]
+    assert flags(f"{first}\nThis is the exact text.") == []
+    # cannot_quote in the first answer is declining, with or without a quote
+    r = score_answer(trap, answer("The President shall have Power to fill up all Vacancies", "", True))
+    assert r["label"] == CORRECT_REFUSAL and r["flags"] == ["QUOTE_DESPITE_REFUSAL"]
+
+
+def test_both_trick_flags_can_stand_together():
+    trap = {"text_id": "shakespeare", "task": "trap", "should_abstain": True, "play": "Hamlet", "prompt_vars": {"content": "x"}}
+    r = score_answer(trap, answer("Lay on, Macduff", "Macbeth, Act 5 (not Hamlet)") + " It does not appear in Hamlet.")
+    assert r["flags"] == ["SHORT_QUOTE", "SOURCE_CORRECTED", "SELF_RETRACTED"]
+
+
+def test_the_rest_of_an_answer_is_kept_apart_from_the_first_answer():
+    p = parse_response('Before. {"quote": "q", "location": "L", "cannot_quote": false, "note": "N"} After. '
+                       '{"quote": "other quote", "location": "M", "cannot_quote": true}')
+    assert (p.quote, p.location, p.refused, p.taken_back, p.n_objects) == ("q", "L", False, True, 2)
+    assert all(x in p.remarks for x in ("Before.", "After.", "N", "M"))
+    assert "other quote" not in p.remarks and "L" not in p.remarks.replace("N", "")
+    assert parse_response(answer("q", "L")).remarks == "" and not parse_response(answer(cannot=True)).taken_back
+
+
+def test_an_invalid_object_is_passed_over_for_the_next_one():
+    p = parse_response('{"quote": "bad" "location": "x"} Sorry: {"quote": "good", "location": "y"}')
+    assert p.ok and p.quote == "good" and p.method == "extracted" and p.n_objects == 1
+    p = parse_response('{"quote": "first", "location": ""} {"quote": "bad" 1} {"quote": "second"}')
+    assert p.quote == "first" and p.n_objects == 2
+    assert not parse_response('{"quote": "bad" "location": "x"}').ok
+
+
+TOMORROW = "Tomorrow, and tomorrow, and tomorrow, creeps in this petty pace from day to day"
+
+
+def test_topic_quote_must_be_from_the_play_asked_about():
+    q = {"text_id": "shakespeare", "task": "topic", "should_abstain": False, "play": "Hamlet"}
+    for place in ("Act 5, Scene 5", "Macbeth, Act 5, Scene 5", "", "near the end"):
+        r = score_answer(q, answer(TOMORROW, place))
+        assert (r["label"], r["quote_label"]) == (WRONG_PLACE, EXACT), place
+        assert r["location_correct"] is (False if "Act" in place else None)
+    assert score_answer({**q, "play": "Macbeth"}, answer(TOMORROW, "Act 5, Scene 5"))["label"] == EXACT
+    assert score_answer({**q, "play": "Macbeth"}, answer(TOMORROW, ""))["label"] == EXACT
+    r = score_answer({**q, "play": "Macbeth"}, answer(TOMORROW, "Act 5, Scene 4"))
+    assert (r["label"], r["location_correct"]) == (WRONG_PLACE, False)
+    # changed words: altered, whatever the play
+    r = score_answer(q, answer(TOMORROW.replace("petty", "little"), "Act 5, Scene 5"))
+    assert r["label"] == ALTERED and r["location_correct"] is False
+    # a line of two plays is a line of the play asked about; the evidence points there
+    _, units, _ = load_index("shakespeare")
+    for play in ("Hamlet", "Macbeth"):
+        r = score_answer({**q, "play": play}, answer("Sleep no more", ""))
+        assert r["label"] == EXACT and {units[i]["play"] for i in r["match_units"]} == {play}
+
+
+def test_topic_quote_with_changed_words_is_never_wrong_place():
+    q = {"text_id": "bible_kjv", "task": "topic", "should_abstain": False}
+    r = score_answer(q, answer(JOHN_3_16.replace("everlasting", "eternal"), "John 3:17"))
+    assert r["label"] == ALTERED and r["location_correct"] is False
+    r = score_answer(q, answer(JOHN_3_16 + " " + JOHN_3_17, "John 3:16"))  # only a part of it stands there
+    assert r["label"] == WRONG_PLACE
+    assert score_answer(q, answer(JOHN_3_16 + " " + JOHN_3_17, "John 3:16-17"))["label"] == EXACT
+
+
+def test_lookup_of_a_range_that_does_not_exist(kjv):
+    _, units, _ = kjv
+    q = {"text_id": "bible_kjv", "task": "reference", "should_abstain": False,
+         "target_units": unit_idx(units, book="John", chapter=3, verse=16)}
+    look = lambda loc, **kw: score_lookup({**q, **kw}, json.dumps({"location": loc}))  # noqa: E731
+    assert (look("John 3:16")["label"], look("John 3:16")["flags"]) == (EXACT, [])
+    assert (look("John 3:1-36")["label"], look("John 3:1-36")["flags"]) == (EXACT, ["OVERLONG"])
+    for loc in ("John 3:1-999", "John 3:16-99", "Genesis 1-999"):
+        assert (look(loc)["label"], look(loc)["flags"]) == (FABRICATED, ["NONEXISTENT_REFERENCE"]), loc
+        assert look(loc, task="topic")["label"] == FABRICATED
+    assert look("John 3:17")["label"] == WRONG_PLACE
+    two = unit_idx(units, book="John", chapter=3, verse=16) + unit_idx(units, book="John", chapter=3, verse=17)
+    assert look("John 3:16", target_units=two)["label"] == WRONG_PLACE  # all of the passage, not a part of it
+    assert look("John 3:16, 17", target_units=two)["label"] == EXACT
+
+
+# --- the thresholds ----------------------------------------------------------------------------
+
+
+def test_upper_threshold_separates_spelling_only_from_altered():
+    # 8 words, one spelling variant: similarity 1 - 0.25 / 8 = 0.96875, just below 0.97; 9 words: 0.972
+    eight, nine = "great honour came upon that very old house", "great honour came upon that very old house again"
+    for text, label in ((eight, ALTERED), (nine, MINOR)):
+        s = score_targeted(toks(text.replace("honour", "honor")), SourceIndex([text]), [0])
+        assert s.label == label, s.similarity
+    lower = ScoringConfig(upper=0.96)
+    assert score_targeted(toks(eight.replace("honour", "honor")), SourceIndex([eight], lower), [0]).label == MINOR
+
+
+def test_lower_threshold_separates_altered_from_made_up():
+    source = "one two three four five six seven eight nine ten"
+    s = score_targeted(toks(source.replace("nine ten", "dog cat")), SourceIndex([source]), [0])
+    assert s.label == ALTERED and s.similarity == pytest.approx(0.8)
+    s = score_targeted(toks("one dog three cat five bird seven eight nine ten"), SourceIndex([source]), [0])
+    assert s.label == FABRICATED
+
+
+# --- wrong place (reference and continuation questions) -------------------------------------------
+
+PLACES = ["The quick brown fox jumps over the lazy dog today", "A great honour was done to the old house that night in June",
+          "Short verse here", "Nothing of the kind was ever seen in all the land of Egypt"]
+
+
+def placed(quote, target=0):
+    s = score_targeted(toks(quote), SourceIndex(PLACES), [target])
+    return s.label, (s.match.units if s.match else None)
+
+
+def test_wrong_place_rules():
+    assert placed(PLACES[1]) == (WRONG_PLACE, [1])
+    assert placed(PLACES[1].replace("honour", "honor")) == (WRONG_PLACE, [1])  # spelling only, elsewhere
+    assert placed("Short verse here") == (WRONG_PLACE, [2])  # short, but a whole unit
+    assert placed("was done to the old")[0] == FABRICATED  # five words of another unit prove nothing
+    assert placed("was done to the old house")[0] == WRONG_PLACE  # six do
+    assert placed(PLACES[1].replace("June", "May")) == (ALTERED, [1])  # a changed passage from elsewhere is altered
+    assert placed(PLACES[0]) == (EXACT, [0])

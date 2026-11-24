@@ -1,20 +1,27 @@
 """The ``quotecheck`` command line.
 
 Exit code: 0 every checked quote is EXACT (or there was nothing to check), 1 at least one is not,
-2 usage error (bad option, unreadable or empty source, unreadable input).
+2 usage error (bad option, unreadable or empty source, unreadable input), 141 the program that
+reads the output closed it early (``quotecheck ... | head``): no verdict.
+
+Positions in the report refer to the decoded files as they are: a byte order mark is not counted,
+line ends are not translated.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import textwrap
 import unicodedata
 from pathlib import Path
 
 from . import __version__
-from .core import Report, Source, _floor, check
+from .core import Report, Source, _floor, _line_of, check
+
+BROKEN_PIPE = 141  # what the shell reports for a program ended by SIGPIPE (128 + 13)
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -38,20 +45,36 @@ def _parser() -> argparse.ArgumentParser:
 def _read(name: str, what: str) -> str:
     try:
         data = sys.stdin.buffer.read() if name == "-" else Path(name).read_bytes()
-        text = data.decode("utf-8-sig")
+        return data.decode("utf-8-sig")
     except OSError as e:
         raise ValueError(f"cannot read {what} {name}: {e.strerror or e}") from None
     except UnicodeDecodeError:
         raise ValueError(f"{what} {name} is not UTF-8 text") from None
-    return text.replace("\r\n", "\n") if what == "input" else text
 
 
 def main(argv: list[str] | None = None) -> int:
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(errors="backslashreplace")  # a terminal that cannot print «ё»
-    parser = _parser()
-    args = parser.parse_args(argv)
+    try:
+        try:
+            return _run(argv)
+        finally:
+            sys.stdout.flush()
+    except BrokenPipeError:
+        # Nobody reads any more: end quietly, also when Python flushes the streams at exit.
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        for stream in (sys.stdout, sys.stderr):
+            try:
+                os.dup2(devnull, stream.fileno())
+            except (OSError, ValueError):  # not a real file
+                pass
+        os.close(devnull)
+        return BROKEN_PIPE
+
+
+def _run(argv: list[str] | None) -> int:
+    args = _parser().parse_args(argv)
     try:
         if args.source == "-":
             raise ValueError('--source must be a file ("-" works for --input only)')
@@ -79,7 +102,7 @@ def render(report: Report, source: Source, text: str, source_name: str) -> str:
     for i, q in enumerate(report.quotes, 1):
         flags = f"  ({', '.join(q.flags)})" if q.flags else ""
         lines += ["", f"[{i}] {q.label}  similarity {_show(q.similarity)}{flags}"]
-        lines += _field(f"quote, line {text.count(chr(10), 0, q.start) + 1}", q.text)
+        lines += _field(f"quote, line {_line_of(text, q.start)}", q.text)
         if q.label != "EXACT" and len(q.parts) > 1:
             for p in q.parts:
                 lines += _field(f"part {p.label} {_show(p.similarity)}", p.text)

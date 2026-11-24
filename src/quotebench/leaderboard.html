@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>QuoteBench</title>
 <meta name="description" content="How often do AI language models fabricate or alter verbatim quotations from well-known texts?">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232a78d6'/%3E%3Cpath d='M8 21V14q0-5 5-5v3q-2 0-2 2h3v7zm10 0V14q0-5 5-5v3q-2 0-2 2h3v7z' fill='%23fff'/%3E%3C/svg%3E">
 <style>
 :root {
   color-scheme: light;
-  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #898781;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #6b6963; --unf: #898781; --link: #1f66bd;
   --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
   --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s1-light: #86b6ef;
   --warn-bg: #fff4d6; --warn-ink: #5c4300; --hover: rgba(11,11,11,0.04);
@@ -16,7 +17,7 @@
 @media (prefers-color-scheme: dark) {
   :root:where(:not([data-theme="light"])) {
     color-scheme: dark;
-    --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink2: #c3c2b7; --muted: #898781;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink2: #c3c2b7; --muted: #9a9892; --unf: #898781; --link: #6aa8f0;
     --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
     --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s1-light: #a9cdf7;
     --warn-bg: #3a2e0a; --warn-ink: #f5d78a; --hover: rgba(255,255,255,0.05);
@@ -24,7 +25,7 @@
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink2: #c3c2b7; --muted: #898781;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink2: #c3c2b7; --muted: #9a9892; --unf: #898781; --link: #6aa8f0;
   --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
   --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s1-light: #a9cdf7;
   --warn-bg: #3a2e0a; --warn-ink: #f5d78a; --hover: rgba(255,255,255,0.05);
@@ -76,16 +77,19 @@ td .ci, th .ci { color: var(--muted); font-size: 12px; margin-left: 4px; }
 svg { display: block; width: 100%; height: auto; overflow: visible; }
 #board th, #board td { padding: 8px 5px; }
 #board thead th { white-space: normal; vertical-align: bottom; line-height: 1.25; }
+/* the table is wider than its frame: the model names stay in view while it scrolls */
+#board th:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; white-space: normal; min-width: 104px; }
+#board tbody tr:hover th:first-child { background: linear-gradient(var(--hover), var(--hover)), var(--surface); }
 #board td .ci { display: block; margin: 0; }
 #models th, #models td { white-space: normal; padding: 9px 8px; }
-#models td:nth-child(2), #models td:nth-child(4) { white-space: nowrap; }
+#models td:nth-child(2), #models td:nth-child(3), #models td:nth-child(5) { white-space: nowrap; }
+#models td code { overflow-wrap: normal; }
 .defs { margin: 12px 0 0; font-size: 13.5px; color: var(--ink2); }
 .defs summary { cursor: pointer; }
 .defs dt { color: var(--ink); font-weight: 600; margin-top: 8px; }
 .defs dd { margin: 0; max-width: 75ch; }
 @media (max-width: 640px) {
   .card { padding: 16px; }
-  #board th:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; white-space: normal; min-width: 104px; }
   code { overflow-wrap: anywhere; }
 }
 svg text { fill: var(--ink2); font: 12.5px system-ui, -apple-system, "Segoe UI", sans-serif; }
@@ -94,7 +98,7 @@ svg .mark { cursor: default; }
 svg .mark:focus { outline: none; }
 svg .mark:hover { filter: brightness(1.1); }
 svg .mark:focus-visible { stroke: var(--ink); stroke-width: 2px; }
-a { color: var(--s1); }
+a { color: var(--link); }
 #tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--surface); font-size: 13px;
   padding: 7px 10px; border-radius: 8px; max-width: 280px; opacity: 0; transition: opacity .08s;
   z-index: 10; line-height: 1.4; }
@@ -115,6 +119,18 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
     automatically against the source.</p>
   <div class="banner" id="banner" hidden></div>
   <div class="kpis" id="kpis"></div>
+
+  <section class="card method" aria-labelledby="t-know">
+    <h2 id="t-know">What to know before using these numbers</h2>
+    <ul>
+      <li><strong>Written with Claude.</strong> The questions were drafted with Claude, an AI model, and were not reviewed line by line by the author. The code and the paper were written with Claude too.</li>
+      <li><strong>Claude models are also under test:</strong> <span id="nclaude"></span>.</li>
+      <li><strong>The scorer was corrected after the results were seen</strong> (<a href="https://github.com/codebymax10/quotebench/blob/main/DECISIONS.md">DECISIONS D19</a>), with rules that are the same for all models.</li>
+      <li><strong>The split of wrong answers into kinds was not checked by humans.</strong> Right or wrong is decided mechanically, without human judgement.</li>
+      <li><strong>First-day answers that finished under the earlier 2,000-token limit were kept;</strong> only answers cut off by it were asked again, at 16,000 (Llama 4 Maverick: 8,192).</li>
+      <li><strong>Not peer reviewed.</strong> A solo student project.</li>
+    </ul>
+  </section>
 
   <div class="filters" role="group" aria-label="Prompt condition">
     <span class="sub" style="margin:0">Prompt:</span>
@@ -141,7 +157,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
     <h2 id="t-c1">How often each model's word-for-word quotation was wrong</h2>
     <p class="sub">Share of answered + unfinished questions, by kind of mistake; the rest were correct. Labels show
       <em>Correct (strict)</em>, the ranking score. The split into kinds is approximate and was not checked against human labels.</p>
-    <div class="legend"><span style="--c:var(--s1)">Made up</span><span style="--c:var(--s2)">Altered</span><span style="--c:var(--s3)">Real passage, wrong place</span><span style="--c:var(--s4)">Spelling only / incomplete</span><span style="--c:var(--muted)">Unfinished</span></div>
+    <div class="legend"><span style="--c:var(--s1)">Made up</span><span style="--c:var(--s2)">Altered</span><span style="--c:var(--s3)">Real passage, wrong place</span><span style="--c:var(--s4)">Spelling only / incomplete</span><span style="--c:var(--unf)">Unfinished</span></div>
     <div id="c1"></div>
     <p class="caption" id="c1cap"></p>
   </section>
@@ -156,8 +172,8 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
     </section>
     <section class="card" aria-labelledby="t-c4">
       <h2 id="t-c4">Trick questions</h2>
-      <p class="sub">How often the model gave a quote although the right answer is that there is none (nonexistent references, famous misattributions, topics the text does not cover). Any quote is a failure; the light part said itself that the line is not from the named text.</p>
-      <div class="legend"><span style="--c:var(--s1)">Presented as from the named text</span><span style="--c:var(--s1-light)">Said it is not from the named text</span></div>
+      <p class="sub">How often the model gave a quote although the right answer is that there is none (nonexistent references, famous misattributions, topics the text does not cover). A quote is a failure, corrected or not; in the light part, the same answer corrects itself.</p>
+      <div class="legend"><span style="--c:var(--s1)">No correction in the answer</span><span style="--c:var(--s1-light)">Corrected in the same answer</span></div>
       <div id="c4"></div>
       <p class="caption" id="c4cap"></p>
     </section>
@@ -185,11 +201,14 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
     <ul>
       <li><strong>Texts:</strong> King James Bible, Shakespeare (Hamlet, Macbeth, Romeo and Juliet), U.S. Constitution, Pride and Prejudice, On the Origin of Species (1859). One fixed public-domain edition each, named in every prompt.</li>
       <li><strong>Tasks:</strong> quote a reference; quote the passage that comes next; give a quote on a theme with its location; trick questions where the right answer is "this does not exist".</li>
-      <li><strong>Scoring:</strong> every prompt asks for the passage word for word, so a quote is <em>correct</em> only if every word matches the named edition letter for letter (punctuation, capitals and the division into words ignored; a complete quote followed by extra text still counts). Wrong answers are sorted, approximately, into spelling only, incomplete, altered (word similarity &ge; <span id="lower"></span>), real passage from the wrong place, and made up; this split was not checked against human labels.</li>
-      <li><strong>Settings:</strong> one user message, JSON answer, no tools or web search, temperature 0 where a model accepts it, up to 16,000 output tokens (Llama 4 Maverick: 8,192, its host's maximum), each model's default reasoning. Answers cut off at the earlier 2,000-token limit were asked again at 16,000.</li>
+      <li><strong>Scoring:</strong> every prompt asks for the passage word for word, so a quote is <em>correct</em> only if every word matches the named edition letter for letter (punctuation, capitals, digits and the division into words ignored; a complete quote followed by extra text still counts). Because verse numbers and other digits are dropped before comparing, a wrong number written in digits inside a quote is not noticed. Wrong answers are sorted, approximately, into spelling only, incomplete, altered (word similarity &ge; <span id="lower"></span>), real passage from the wrong place, and made up; this split was not checked against human labels.</li>
+      <li><strong>Trick questions:</strong> the right answer is to decline. An answer marked <code>cannot_quote</code> counts as declining, even if it also contains a quote; any other answer with a quote is a failure. Where a model gives several answers, the first one is scored; a later correction is recorded (<em>corrected in the same answer</em>) but does not undo the failure. Word rules find the corrections; they were written after reading the answers.</li>
+      <li><strong>Settings:</strong> one user message, JSON answer, no tools or web search, temperature 0 where a model accepts it, up to 16,000 output tokens (Llama 4 Maverick: 8,192, its host's maximum), each model's default reasoning. Answers cut off at the earlier 2,000-token limit were asked again at 16,000; those that finished under it were kept.</li>
       <li><strong>Not measured:</strong> hallucination in general, paraphrase, or quotation from obscure or private documents. Results hold for the exact model IDs and dates below.</li>
     </ul>
     <div class="table-wrap" role="region" aria-label="Models and run dates" tabindex="0"><table id="models" aria-label="Models and run dates"></table></div>
+    <p class="caption">Model ID: the one sent to the API. Served as: the model name the API returned with the answers. Cost: what all calls to
+      the model cost, including answers that were later replaced (cut-off answers asked again, discarded first runs).</p>
   </section>
 
   <footer id="foot"></footer>
@@ -202,8 +221,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
   const S = JSON.parse(document.getElementById("data").textContent);
   const done = m => m.calls_done >= S.expected_calls_per_model;
   const models = S.models.filter(m => S.per_model[m.id]);
-  let cond = "baseline";
-  try { cond = localStorage.getItem("qb-cond") === "cautious" ? "cautious" : "baseline"; } catch (e) {}
+  let cond = "baseline";  // every visit starts with the plain prompt, which ranks the models
   // helpers:start (pure functions, run by tests/test_report.py)
   // k/n with one decimal, halves rounded up: the same rule as report.pct
   const pct = (k, n) => { if (!n) return "–";
@@ -217,8 +235,15 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
   const wrong = q => ({k: q.correct_strict.n - q.correct_strict.k, n: q.correct_strict.n});
   const segments = q => [["Made up", q.fabricated.k], ["Altered", q.altered.k], ["Real, wrong place", q.wrong_place.k],
     ["Spelling only / incomplete", q.spelling_only.k + q.incomplete.k], ["Unfinished", q.unparseable]];
-  const trapSegments = q => [["Presented as from the named text", q.trap_presented.k],
-    ["Said itself that it is not from the named text", q.trap_failure.k - q.trap_presented.k]];
+  const trapSegments = q => [["No correction in the answer", q.trap_uncorrected.k],
+    ["Corrected in the same answer", q.trap_failure.k - q.trap_uncorrected.k]];
+  // how many models are Anthropic's, and how many of them lead the (plain-prompt, strict) ranking
+  const claudeNote = (ms, perModel) => {
+    const ranked = [...ms].sort((a, b) => perModel[b.id].baseline.correct_strict.rate - perModel[a.id].baseline.correct_strict.rate);
+    const n = ms.filter(m => m.provider === "Anthropic").length;
+    let top = ranked.findIndex(m => m.provider !== "Anthropic"); if (top < 0) top = ranked.length;
+    return `${n} of the ${ms.length} models are Claude models` + (top > 1 ? `, including the top ${top}` : top ? ", including the first" : ""); };
+  const modelsTile = (status, done, all) => status === "released" ? ["Models", String(all)] : ["Models finished", `${done} of ${all}`];
   const bannerHtml = status => status === "released" ? "" :
     "<strong>Draft — not yet released.</strong> Numbers may still change; please do not cite them yet.";
   // helpers:end
@@ -236,10 +261,12 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
   const spend = S.models.reduce((a, m) => a + m.cost_usd, 0);
   const kpi = (label, value) => `<div class="kpi"><div class="label">${label}</div><div class="value">${value}</div></div>`;
   document.getElementById("kpis").innerHTML =
-    kpi("Models finished", `${finished} of ${S.models.length}`) +
+    kpi(...modelsTile(S.status, finished, S.models.length)) +
     kpi("Answers scored", answers.toLocaleString()) +
     kpi("API cost", "$" + spend.toFixed(2)) +
     kpi("Updated " + S.generated.slice(0, 10), S.generated.slice(11, 16) + " UTC");
+
+  document.getElementById("nclaude").textContent = claudeNote(models, S.per_model);
 
   // ---------- tooltip ----------
   const tip = document.getElementById("tip");
@@ -321,8 +348,8 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
     {key: "wrong_place", label: "Wrong place", rate: true, def: "A real passage of the text, but not the one asked for. Share of answered questions."},
     {key: "fabricated", label: "Made up", rate: true, def: "Not close to any passage of the text (very short matches do not count). Share of answered questions."},
     {key: "abstained", label: "Declined", rate: true, def: "Said it could not quote. Share of readable answers to questions that have a real answer. Declined questions are left out of the other rates."},
-    {key: "trap_failure", label: "Gave a quote on a trick question", rate: true, def: "Gave any quote for a trick question whose right answer is that there is none. Share of readable answers to trick questions."},
-    {key: "trap_presented", label: "of which presented as genuine", rate: true, def: "Gave a quote for a trick question and did not say itself that the line is not from the named text (found by a word rule). Share of readable answers to trick questions."},
+    {key: "trap_failure", label: "Gave a quote on a trick question", rate: true, def: "Gave a quote for a trick question whose right answer is that there is none; a failure, corrected or not. An answer marked cannot_quote counts as declining, even if it also contains a quote. Share of readable answers to trick questions."},
+    {key: "trap_uncorrected", label: "of which with no correction", rate: true, def: "Gave a quote for a trick question, and nowhere in the answer does it say that the line is not from the named text or that the passage asked for does not exist, or take the quote back (found by word rules; naming another place in the same text without comment is not a correction). Share of readable answers to trick questions."},
     {key: "location_error", label: "Wrong location", rate: true, def: "Quote-on-a-topic questions: the quote is real but the stated location is wrong. Share of quotes whose location was checked."},
     {key: "stability", label: "Same label ×4", rate: true, get: m => S.per_model[m.id].stability, def: ""},
     {key: "answered", label: "Answered", get: (m, d) => d.correct.n, def: "Questions with a real answer for which the model gave a readable quote."},
@@ -361,7 +388,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
     const ms = order(), host = document.getElementById("c1");
     const q = m => S.per_model[m.id][cond], val = m => rate(q(m).correct_strict) + " correct (strict)";
     const f = frame(host, ms.length, 34, 170, 150, `Stacked bar chart of wrong answers by kind, ${condName()}. ${listOf(ms, val)}.`);
-    const colors = ["--s1", "--s2", "--s3", "--s4", "--muted"].map(css);
+    const colors = ["--s1", "--s2", "--s3", "--s4", "--unf"].map(css);
     const max = niceMax(Math.max(...ms.map(m => { const w = wrong(q(m)); return w.n ? w.k / w.n : 0; })) * 1.1);
     axis(f, max);
     ms.forEach((m, i) => {
@@ -433,7 +460,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
   function chart4() {
     const ms = order(), host = document.getElementById("c4");
     const q = m => S.per_model[m.id][cond], vs = ms.map(m => q(m).trap_failure);
-    const val = m => `${rate(q(m).trap_failure)}, ${rate(q(m).trap_presented)} as genuine`;
+    const val = m => `${rate(q(m).trap_failure)}, ${rate(q(m).trap_uncorrected)} uncorrected`;
     const f = frame(host, ms.length, 30, 150, 128, `Stacked bar chart of trick questions on which the model gave a quote, ${condName()}. ` +
       listOf(ms, val) + ".");
     const max = niceMax(Math.max(0.05, ...vs.map(v => v.hi || 0)) * 1.02);
@@ -447,14 +474,14 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
         const w = f.plotW * k / v.n / max;
         bar(f, x, y, w, h, css(j ? "--s1-light" : "--s1"),
           `<strong>${esc(m.label)}</strong><br>${name}: ${k} of ${v.n} trick questions (${pct(k, v.n)})<br>Gave a quote: ${v.k} of ${v.n}, 95% CI ${ci(v)}` +
-            (j ? "" : `<br>Presented as genuine: 95% CI ${ci(q(m).trap_presented)}`),
+            (j ? "" : `<br>With no correction: 95% CI ${ci(q(m).trap_uncorrected)}`),
           `${m.label}, ${name}: ${pct(k, v.n)}, ${k} of ${v.n} trick questions`);
         x += w; });
       const xl = f.x0 + f.plotW * v.lo / max, xh = f.x0 + f.plotW * v.hi / max;
       el("line", {x1: xl, x2: xh, y1: y + h / 2, y2: y + h / 2, stroke: css("--muted"), "stroke-width": 1.5}, f.svg);
       if (!f.narrow) valueLabel(f, xh + 6, y + h / 2, val(m), "tick");
     });
-    setCap("c4cap", `n = ${range(vs.map(v => v.n))} readable answers to trick questions per model; lines are 95% intervals of the whole bar. Whether an answer says that the line is not from the named text is decided by a word rule.` + partialNote());
+    setCap("c4cap", `n = ${range(vs.map(v => v.n))} readable answers to trick questions per model; lines are 95% intervals of the whole bar. Corrected = the answer says that the line is not from the named text or that the passage does not exist, or takes the quote back (found by word rules).` + partialNote());
   }
 
   // ---------- by-text table ----------
@@ -471,15 +498,14 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
   }
 
   // ---------- models + footer ----------
-  document.getElementById("models").innerHTML = "<thead><tr><th scope='col'>Model</th><th scope='col'>Exact ID</th><th scope='col'>Served by</th><th scope='col'>Run</th><th scope='col'>Cost</th></tr></thead><tbody>" +
-    S.models.map(m => `<tr><th scope="row">${esc(m.label)}${m.note ? ` <span class="ci">(${esc(m.note)})</span>` : ""}</th><td>${esc(m.id)}</td><td>${esc(m.api === "anthropic" ? "Anthropic API" : (m.hosts.join(", ") || "–") + " via OpenRouter")}</td><td>${esc(runDates(m.run_dates))}</td><td>$${m.cost_usd.toFixed(2)}</td></tr>`).join("") + "</tbody>";
+  document.getElementById("models").innerHTML = "<thead><tr><th scope='col'>Model</th><th scope='col'>Model ID (API)</th><th scope='col'>Served as</th><th scope='col'>Served by</th><th scope='col'>Run</th><th scope='col'>Cost incl. replaced answers</th></tr></thead><tbody>" +
+    S.models.map(m => `<tr><th scope="row">${esc(m.label)}${m.note ? ` <span class="ci">(${esc(m.note)})</span>` : ""}</th><td><code>${esc(m.api_model)}</code></td><td><code>${esc(m.served_models.join(", ") || "–")}</code></td><td>${esc(m.api === "anthropic" ? "Anthropic API" : (m.hosts.join(", ") || "–") + " via OpenRouter")}</td><td>${esc(runDates(m.run_dates))}</td><td>$${m.cost_usd.toFixed(2)}</td></tr>`).join("") + "</tbody>";
   document.getElementById("foot").innerHTML = `QuoteBench ${esc(S.version)} · generated ${esc(S.generated)} from <code>results/summary.json</code> · scoring thresholds ${esc(S.scoring.status)} · code MIT, test set CC BY 4.0 · <a href=\"https://github.com/codebymax10/quotebench\">repository</a> · <a href="https://github.com/codebymax10/quotebench/blob/main/PAPER.md">paper</a>`;
 
   function drawAll() { drawTable(); chart1(); chart2(); chart3(); chart4(); drawByText(); }
   document.querySelectorAll("#condSeg button").forEach(b => {
     b.setAttribute("aria-pressed", b.dataset.cond === cond);
     b.addEventListener("click", () => { cond = b.dataset.cond;
-      try { localStorage.setItem("qb-cond", cond); } catch (e) {}
       document.querySelectorAll("#condSeg button").forEach(x => x.setAttribute("aria-pressed", x === b)); drawAll(); }); });
   // phones fire resize when the address bar hides; only a new width needs a redraw
   let rt, lastW = window.innerWidth;

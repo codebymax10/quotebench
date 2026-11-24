@@ -1,4 +1,5 @@
-# Scoring settings (frozen for v1.0; any change means a new benchmark version).
+# Scoring settings, frozen from the v1.0 release (2026-11-24): any later change means a new benchmark
+# version. The changes of DECISIONS D19 were made before that release, after the results were seen.
 # Headline metric (DECISIONS D15): a quote is CORRECT only if every word matches the edition
 # letter for letter (punctuation, capitals and whitespace ignored, so "any thing" = "anything",
 # flag WORD_DIVISION) — label EXACT without the PARTIAL flag.
@@ -9,11 +10,13 @@ status: frozen-v1.0
 thresholds:
   upper: 0.97   # similarity >= upper (but not identical)  -> MINOR
   lower: 0.80   # lower <= similarity < upper               -> ALTERED; below -> FABRICATED
-  # How MINOR is decided:
-  #   variants_only — similarity >= upper AND no word was changed, added or dropped (only
-  #                   spelling variants). Default: a real word change is never MINOR.
-  #   similarity    — SPEC §8 literal: similarity >= upper. In long passages (34+ words)
-  #                   one changed word stays above 0.97, so long-unit texts look better.
+  # How MINOR (spelling only) is decided. It is wrong either way (D15); this only shapes the split:
+  #   variants_only — used. Similarity >= upper AND no word was changed, added or dropped: the only
+  #                   differences are the spelling variants defined below. A real word change is
+  #                   never MINOR, however long the passage.
+  #   similarity    — the literal text of SPEC §8: similarity >= upper, whatever the differences. Not
+  #                   used: in passages of 34+ words one changed word stays above 0.97, so texts
+  #                   with long units would look better.
   minor_rule: variants_only
 
 # The fewest words that identify a passage, where the match is not word for word or is somewhere
@@ -48,7 +51,7 @@ variants:
     - [shewing, showing]
     - [chuse, choose]
     - [connexion, connection]
-    # archaic forms (SPEC §8 counts "archaic-form differences" as MINOR) — Maksim to confirm
+    # archaic forms (SPEC §8 counts "archaic-form differences" as MINOR; wrong in any case, D15)
     - [hath, has]
     - [doth, does]
     - [saith, says]

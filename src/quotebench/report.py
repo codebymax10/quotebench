@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 
 from .questions import load_questions
-from .runner import RESULTS_DIR, Cache, load_config
+from .runner import RESULTS_DIR, Cache, build_jobs, load_config
 from .scoring import score_answer, score_lookup
 
 SCORED_PATH = RESULTS_DIR / "scored.parquet"
@@ -23,6 +23,29 @@ def call_error(rec: dict) -> str | None:
     if rec["status"] == "error":
         return rec["error"]
     return HOST_ERROR if rec["finish_reason"] == "error" else None
+
+
+def incomplete_models(calls) -> list[str]:
+    """What is missing, per model of the benchmark, from ``calls`` (model, question, condition, repeat).
+
+    Empty only if every model has exactly the calls of the test set: no published number may come
+    from a part of them.
+    """
+    have: dict[str, set] = {}
+    for model, *call in calls:
+        have.setdefault(model, set()).add(tuple(call))
+    expected = {(j.question_id, j.condition, j.repeat) for j in build_jobs(["any"])}
+    out = []
+    for m in load_config()["models"]:
+        got = have.get(m["id"], set())
+        if got != expected:
+            extra = len(got - expected)
+            out.append(f"{m['id']}: {len(got & expected)} of {len(expected)} calls"
+                       + (f", and {extra} that are not in the test set" if extra else ""))
+    return out
+
+
+CALL = ("model", "question_id", "condition", "repeat")
 
 
 def score_all(cache: Cache | None = None) -> pd.DataFrame:
@@ -65,7 +88,7 @@ import datetime as dt
 import json
 import math
 
-from .runner import CACHE_PATH, PRICING_PATH, archived_costs
+from .runner import archived_costs
 
 # "draft" shows a warning banner on the leaderboard page; "released" does not.
 RELEASE_STATUS = "released"
@@ -96,8 +119,11 @@ def quote_metrics(d: pd.DataFrame) -> dict:
     ``correct_of_all`` also counts declined questions as not correct (coverage). Calls that ended
     in ERROR are in no rate.
 
-    Trick questions: ``trap_failure`` is any quote given; ``trap_presented`` leaves out the answers
-    that say themselves that the line is not from the named text (flag SOURCE_CORRECTED).
+    Trick questions: ``trap_failure`` is any quote given (not marked cannot_quote);
+    ``trap_uncorrected`` leaves out the answers that correct themselves: ``trap_source_corrected``
+    say with the quote that it is not from the named text (flag SOURCE_CORRECTED), ``trap_self_retracted``
+    say elsewhere that it is not, or that the passage does not exist, or take the answer back
+    (flag SELF_RETRACTED). An answer can do both.
     """
     real = d[~d["should_abstain"] & ~d["label"].isin(["UNPARSEABLE", "ERROR"])]
     answered = real[real["label"].isin(ANSWERED)]
@@ -108,7 +134,8 @@ def quote_metrics(d: pd.DataFrame) -> dict:
     partial = answered["flags"].fillna("").str.contains("PARTIAL")
     correct = int(((answered["label"] == "EXACT") & ~partial).sum())
     fell = traps["label"] == "TRAP_FABRICATED"
-    corrected = traps["flags"].fillna("").str.contains("SOURCE_CORRECTED")
+    source_corrected, self_retracted = (traps["flags"].fillna("").str.contains(f)
+                                        for f in ("SOURCE_CORRECTED", "SELF_RETRACTED"))
     return {
         "correct": wilson(correct, n),
         "correct_strict": wilson(correct, n + unreadable),
@@ -120,7 +147,9 @@ def quote_metrics(d: pd.DataFrame) -> dict:
         "fabricated": wilson((answered["label"] == "FABRICATED").sum(), n),
         "abstained": wilson((real["label"] == "ABSTAINED").sum(), len(real)),
         "trap_failure": wilson(fell.sum(), len(traps)),
-        "trap_presented": wilson((fell & ~corrected).sum(), len(traps)),
+        "trap_uncorrected": wilson((fell & ~source_corrected & ~self_retracted).sum(), len(traps)),
+        "trap_source_corrected": wilson((fell & source_corrected).sum(), len(traps)),
+        "trap_self_retracted": wilson((fell & self_retracted).sum(), len(traps)),
         "location_error": wilson((loc["location_correct"] == False).sum(), len(loc)),  # noqa: E712
         "unparseable": unreadable,
         "errors": int((d["label"] == "ERROR").sum()),
@@ -144,7 +173,7 @@ def lookup_metrics(d: pd.DataFrame) -> dict:
         "nonexistent_reference": wilson((answered["label"] == "FABRICATED").sum(), len(answered)),
         "abstained": wilson((real["label"] == "ABSTAINED").sum(), len(real)),
         "trap_failure": wilson((traps["label"] == "TRAP_FABRICATED").sum(), len(traps)),
-        "unparseable": int((d["label"] == "UNPARSEABLE").sum()),
+        "unparseable": unreadable,
         "errors": int((d["label"] == "ERROR").sum()),
         "total": int(len(d)),
     }
@@ -156,23 +185,25 @@ def summarise(df: pd.DataFrame | None = None) -> dict:
     from .questions import META_PATH, load_questions
 
     n_questions = len(load_questions())
-    expected_calls = len(__import__("quotebench.runner", fromlist=["build_jobs"]).build_jobs(["x/x"]))
+    expected_calls = len(build_jobs(["any"]))
+    complete = not incomplete_models(df[list(CALL)].itertuples(index=False, name=None))
     main = df[df["repeat"] == 0]
     out = {
         "benchmark": "QuoteBench", "version": json.loads(META_PATH.read_text())["version"],
         "generated": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
-        "status": RELEASE_STATUS, "n_questions": n_questions, "expected_calls_per_model": expected_calls,
+        "status": RELEASE_STATUS if complete else "draft", "n_questions": n_questions, "expected_calls_per_model": expected_calls,
         "scoring": {k: v for k, v in __import__("yaml").safe_load((ROOT_CONFIG / "scoring.yaml").read_text()).items()
                     if k in ("status", "thresholds", "partial_min_words", "fragment_min_words")},
         "models": [], "per_model": {},
     }
-    pricing = json.loads(PRICING_PATH.read_text()) if PRICING_PATH.exists() else {"models": {}}
     archived = archived_costs()
     for m in cfg["models"]:
         mid = m["id"]
         d = main[main["model"] == mid]
         info = {k: m.get(k) for k in ("id", "label", "provider", "role", "note")}
         info["api"] = m.get("api", "openrouter")
+        info["api_model"] = m.get("api_model", mid)  # the model ID sent to that API
+        info["served_models"] = sorted(x for x in df.loc[df["model"] == mid, "served_model"].dropna().unique())
         info["hosts"] = sorted(x for x in d["provider"].dropna().unique()) if len(d) else []
         info["calls_done"] = int((df["model"] == mid).sum())
         # incl. answers that were later replaced (dry runs, cut-off answers re-asked, D16)
@@ -207,9 +238,13 @@ def summarise(df: pd.DataFrame | None = None) -> dict:
         reps = reps[reps.map(len) == 4]
         pm["stability"] = wilson(int(sum(len(set(x)) == 1 for x in reps)), len(reps))
         out["per_model"][mid] = pm
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    SUMMARY_PATH.write_text(json.dumps(out, indent=1, default=str) + "\n", encoding="utf-8")
+    write_summary(out)
     return out
+
+
+def write_summary(summary: dict) -> None:
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    SUMMARY_PATH.write_text(json.dumps(summary, indent=1, default=str) + "\n", encoding="utf-8")
 
 
 from .sources import ROOT as _ROOT  # noqa: E402
@@ -220,7 +255,7 @@ ROOT_CONFIG = _ROOT / "config"
 
 # --------------------------------------------------------------------------------------
 # Figures (PNG + SVG, light theme, for README / paper). Palette: dataviz reference palette,
-# categorical slots 1-3 validated (scripts/validate_palette.js) in fixed order.
+# categorical slots 1-3 in fixed order.
 
 INK, INK2, MUTED, GRID, SURFACE = "#0b0b0b", "#52514e", "#898781", "#e1e0d9", "#fcfcfb"
 SLOT = ["#2a78d6", "#eb6834", "#1baf7a"]
@@ -289,9 +324,8 @@ def error_segments(q: dict) -> list[tuple[str, int]]:
 
 def trap_segments(q: dict) -> list[tuple[str, int]]:
     """The two parts of ``trap_failure``, as counts."""
-    k = q["trap_presented"]["k"]
-    return [("Presented as from the named text", k),
-            ("Said itself that it is not from the named text", q["trap_failure"]["k"] - k)]
+    k = q["trap_uncorrected"]["k"]
+    return [("No correction in the answer", k), ("Corrected in the same answer", q["trap_failure"]["k"] - k)]
 
 
 UNFINISHED_NOTE = ("Unfinished = no readable answer (nearly always: still reasoning at the token limit); "
@@ -424,7 +458,7 @@ def make_figures(summary: dict) -> list[str]:
     # 4 — trick questions: quotes given, in two parts (95% CI whiskers on the total)
     fig, ax = plt.subplots(figsize=(FIG_W, 0.4 * len(models) + 1.1))
     vals = [p["baseline"]["trap_failure"] for p in pm]
-    shown = [p["baseline"]["trap_presented"] for p in pm]
+    shown = [p["baseline"]["trap_uncorrected"] for p in pm]
     seg = [trap_segments(p["baseline"]) for p in pm]
     xmax = max(0.1, max((v["hi"] or 0) for v in vals) * 1.35)
     left = [0.0] * len(models)
@@ -435,17 +469,18 @@ def make_figures(summary: dict) -> list[str]:
     for i, (v, g) in enumerate(zip(vals, shown)):
         if v["rate"] is not None:
             ax.plot([v["lo"], v["hi"]], [i, i], color=INK2, linewidth=1)
-            ax.text(v["hi"] + xmax * 0.012, i, f"{pct(v['k'], v['n'])}, {pct(g['k'], g['n'])} as genuine",
+            ax.text(v["hi"] + xmax * 0.012, i, f"{pct(v['k'], v['n'])}, {pct(g['k'], g['n'])} uncorrected",
                     va="center", fontsize=8, color=INK2)
     ax.set_yticks(y, labels)
     _style(ax, xmax)
-    title = "Trick questions: gave a quote, and presented it as genuine"
+    title = "Trick questions: gave a quote, and with no correction"
     title_at(ax, title)
     legend_at(ax, 2, handlelength=1)
     _save(fig, "4_trap_failure", title, f"{partial}Plain prompt. Share of trick questions (readable answers, "
-          f"n = {n_range([v['n'] for v in vals])} per model) on which the model gave a quote although there is none to give; any "
-          "quote is a failure. Light part: the answer itself says that the line is not from the named text, or is from another "
-          "work (found by a word rule). Lines are 95% Wilson intervals of the whole bar. Models in leaderboard order.")
+          f"n = {n_range([v['n'] for v in vals])} per model) on which the model gave a quote although there is none to give; a "
+          "failure, corrected or not (an answer marked cannot_quote counts as declining, even with a quote in it). Light part: "
+          "the same answer says that the line is not from the named text or that the passage does not exist, or takes the "
+          "quote back (found by word rules). Lines are 95% Wilson intervals of the whole bar. Models in leaderboard order.")
     plt.close(fig)
     names.append("4_trap_failure")
     return names
@@ -492,10 +527,12 @@ def _with_interval(v: dict) -> str:
     return f"{_cell(v['k'], v['n'])}, {interval(v)}" if v["n"] else "–"
 
 
-TRICK_HEADS = ["Gave a quote on a trick question", "of which presented as genuine"]
-TRICK_NOTE = ("*Gave a quote on a trick question*: any quote although there is none to give; always a failure. *Of which "
-              "presented as genuine*: without the answers that say themselves that the line is not from the named text, or "
-              "is from another work (found by a word rule).")
+TRICK_HEADS = ["Gave a quote on a trick question", "of which with no correction"]
+TRICK_NOTE = ("*Gave a quote on a trick question*: gave a quote although there is none to give; a failure, corrected or not. An "
+              "answer marked `cannot_quote` counts as declining, even if it also contains a quote. *Of which with no "
+              "correction*: nowhere in the answer does it say that the line is not from the named text or that the passage "
+              "asked for does not exist, or take the quote back (found by word rules; naming another place in the same text "
+              "without comment is not a correction).")
 
 
 def errors_note(summary: dict) -> str:
@@ -515,7 +552,7 @@ def readme_table(summary: dict) -> str:
         f = lambda v: pct(v["k"], v["n"])  # noqa: E731
         traps.append(b["trap_failure"]["n"])
         rows.append([m["label"], f(b["correct_strict"]), f(b["correct"]), _with_interval(b["correct_of_all"]),
-                     f(b["fabricated"]), f(b["trap_failure"]), f(b["trap_presented"]),
+                     f(b["fabricated"]), f(b["trap_failure"]), f(b["trap_uncorrected"]),
                      str(b["correct"]["n"]), str(b["unparseable"])])
     return _md(["Model", "Correct (strict)", "Correct", "Correct of all asked (k/n, 95% interval)", "Made up", *TRICK_HEADS,
                 "Answered", "Unfinished"], rows,
@@ -581,17 +618,18 @@ def traps_table(summary: dict) -> str:
     for m in _models_with_data(summary):
         row = [m["label"]]
         for cond in ("baseline", "cautious"):
-            for key in ("trap_failure", "trap_presented"):
+            for key in ("trap_failure", "trap_uncorrected"):
                 row.append(_with_interval(summary["per_model"][m["id"]][cond][key]))
         rows.append(row)
     return _md(["Model", *(f"{cond}: {head}" for cond in ("Plain", "Cautious")
-                           for head in ("gave a quote", "of which presented as genuine"))], rows,
+                           for head in ("gave a quote", "of which with no correction"))], rows,
                "Trick questions (readable answers), where the right answer is that there is nothing to quote. "
                f"{TRICK_NOTE} Both are shares of all trick questions; k/n and 95% Wilson intervals.")
 
 
 TABLES = {"results": readme_table, "stability": stability_table, "by_text": by_text_table, "fame": fame_table,
           "conditions": conditions_table, "traps": traps_table}
+BLOCKS = {"README.md": ("results", "stability"), "PAPER.md": tuple(TABLES)}  # the blocks each file should have
 
 
 def update_blocks(path: Path, summary: dict) -> list[str]:
@@ -613,7 +651,10 @@ def update_blocks(path: Path, summary: dict) -> list[str]:
     return found
 
 
-def update_readme(summary: dict) -> bool:
-    """Refresh the generated tables in README.md and, if it exists, PAPER.md."""
-    update_blocks(PAPER_PATH, summary)
-    return "results" in update_blocks(README_PATH, summary)
+def update_readme(summary: dict) -> list[str]:
+    """Refresh the generated tables in README.md and PAPER.md; returns the blocks that were not found."""
+    missing = []
+    for path in (README_PATH, PAPER_PATH):
+        found = update_blocks(path, summary)
+        missing += [f"{path.name}: {name}" for name in BLOCKS[path.name] if name not in found]
+    return missing

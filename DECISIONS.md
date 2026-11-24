@@ -15,7 +15,7 @@ Decisions made by Maksim (see SPEC.md §2). Each entry: what was decided, the op
 ## D3 — Constitution text (2026-10-11)
 **Decision:** U.S. National Archives transcriptions (Constitution, Bill of Rights, Amendments 11–27), original 1787 spelling and capitalisation kept.
 **Alternatives:** a modernised-spelling text.
-**Why:** authoritative and nameable in prompts. Capitalisation is removed by normalisation; modernised spellings (e.g. "chuse" → "choose") will be scored as MINOR rather than wrong. Stated as a limitation.
+**Why:** authoritative and nameable in prompts. Capitalisation is removed by normalisation; modernised spellings (e.g. "chuse" → "choose") will be scored as MINOR rather than wrong. Stated as a limitation. (Superseded by D15: a different spelling is wrong, sorted as "spelling only".)
 
 ## D4 — Positioning after related-work scan (2026-10-11)
 **Finding:** YouVersion's Bible Accuracy Benchmark (pre-release, Aug 2026) already measures
@@ -90,6 +90,7 @@ top-priced tiers (Claude Fable/Opus, GPT-6 Astra) are left out; state this in th
 Gemini 3.1 Flash Lite took the small-Google slot planned for Gemini 3.8 Flash, keeping 10 models.
 **Note:** OpenAI GPT-6.x and Anthropic 5.x models do not accept a temperature parameter on
 OpenRouter, so they run at their default sampling; the repeat sample measures the variation.
+**Later changes:** D13 (6 models run), D17 (3 Claude models added), D18 (9 models in v1.0).
 
 ## D9 — Budget cap (2026-10-11)
 **Decision:** hard cap of $25 for the full run (`--max-cost 25`).
@@ -207,7 +208,8 @@ do not think unless asked. Sonnet 4.6 and Haiku 4.5 accept temperature, so they 
 temperature 0; the 1.x Anthropic SDK has no temperature argument, so it is sent in `extra_body`.
 The 5.x models do not accept temperature.
 **Fix during the run:** the first attempt sent no temperature to any Claude model. The 515
-answers Sonnet 4.6 and Haiku 4.5 had given at the default temperature ($0.28) are kept in
+calls for Sonnet 4.6 and Haiku 4.5 at the default temperature (463 answers, $0.28, and 52
+rate-limit failures) are kept in
 `results/archive/claude4_without_temperature/` and were asked again at temperature 0. The first
 attempt also exceeded the account's limit on simultaneous requests (40 per model × 3); the
 failed calls were retried at 25 per model.
@@ -218,7 +220,7 @@ the 9 models.
 prompt, *Correct (strict)*: Opus 5.5 96.5 %, Sonnet 4.6 93.0 %, Haiku 4.5 69.6 %. Sonnet 4.6
 declined 33 % of real questions ("cannot quote"), so its rate rests on 401 answers; Opus 5.5
 declined 1 %, Sonnet 5.5 3 %.
-**Cost:** $14.49 (Opus 5.5 $11.06, Sonnet 4.6 $2.21, Haiku 4.5 $0.94, archived answers $0.28);
+**Cost:** $14.50 (Opus 5.5 $11.06, Sonnet 4.6 $2.21, Haiku 4.5 $0.94, archived answers $0.28);
 project total $31.83.
 
 ## D18 — What v1.0 contains, and release (2026-11-24)
@@ -257,9 +259,11 @@ sorted. The rules use no question ids or model names.
    previously 6) is *incomplete*; a near-verbatim answer (≥ 0.80) is *altered*. No effect on
    correctness.
 6. *Host errors* (finish reason "error"; 2 Gemini answers) are ERROR and excluded (SPEC §6).
-**Added metrics:** (a) trick questions are split: any quote given (unchanged) and quote *presented
-as genuine*, because 38 of 101 plain-prompt trap "failures" themselves say that the line is from
-another work (flag `SOURCE_CORRECTED`; the rule was written after reading these answers);
+**Added metrics:** (a) trick questions are split: any quote given (unchanged) and quote given
+*with no correction*, because 38 of 101 plain-prompt trap "failures" themselves say that the line is
+from another work (flag `SOURCE_CORRECTED`) and 10 say that the passage does not exist or take the
+quote back (flag `SELF_RETRACTED`; 2 do both). The rules were written after reading these answers
+and bring three Claude models to 0;
 (b) *Correct of all asked*, which counts declining as not correct, because declining ranges from
 0 % to 33 %. The ranking stays *Correct (strict)* (D16).
 **Effect (plain prompt, strict):** Opus 5.5 96.5 → 97.1 %, Sonnet 4.6 93.0 → 93.5, Sonnet 5.5
@@ -267,4 +271,11 @@ another work (flag `SOURCE_CORRECTED`; the rule was written after reading these 
 77.1; Haiku 4.5 and Llama unchanged. DeepSeek passes Haiku 5.5 (well inside the intervals).
 Lookup errors 5 → 1 of 2,300. 168 of 17,280 rows changed (123 labels); no answer went from correct
 to wrong.
+**Also recorded here:** SPEC §8 defined MINOR by similarity ≥ 0.97 alone; the code (since the first
+run) also requires that every difference is a spelling variant (`config/scoring.yaml`).
+`config/scoring.yaml` is frozen from the v1.0 release on; D19 came before it.
+**Second round:** three independent reviews (numbers, code, fresh clone) led to further fixes that
+change no label: `SELF_RETRACTED`; topic quotes must come from the play asked about; more location
+forms are read; an interrupted import of `results/raw` can no longer lead to a report on partial
+data (`quotebench report` refuses incomplete models). 14 rows changed, in `flags` only.
 **Caveat:** found, fixed and checked with Claude models, which are also under test.

@@ -143,11 +143,10 @@ def _normalise_label(x: str) -> str:
 def rescore(key: pd.DataFrame, cfg: ScoringConfig) -> list[str]:
     """Labels for the sample items under an alternative scoring config."""
     from . import scoring as S
-    import sqlite3, json  # noqa: E401
-    from .runner import CACHE_PATH
+    from .runner import Cache
 
     questions = {q["id"]: q for q in load_questions()}
-    db = sqlite3.connect(CACHE_PATH)
+    db = Cache().db
     saved = dict(S._INDEXES)
     S._INDEXES.clear()
     try:
@@ -167,6 +166,9 @@ def rescore(key: pd.DataFrame, cfg: ScoringConfig) -> list[str]:
 
 
 def agreement() -> dict:
+    for path in (SHEET_PATH, KEY_PATH):
+        if not path.exists():
+            raise FileNotFoundError(f"no validation/{path.name}: run `quotebench validate export`, then label the sheet")
     sheet = pd.read_csv(SHEET_PATH)
     key = pd.read_csv(KEY_PATH)
     df = sheet.merge(key, on="item")

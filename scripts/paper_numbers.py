@@ -4,8 +4,9 @@
 
 Reads results/scored.parquet, results/summary.json, results/raw/, results/archive/ and
 data/questions.jsonl. Writes nothing and calls no API. Plain prompt (baseline), run 0, unless a
-section says otherwise. Section 14 compares with the scoring before DECISIONS D19, which it reads
-from git; without that commit (zip download, shallow clone) the comparison is skipped.
+section says otherwise. Section 14 compares with the scoring before DECISIONS D19: the counts per model
+come from results/archive/pre_d19_counts.json; the list of changed labels needs the old commit and is
+skipped, with a notice, where git does not have it (zip download, shallow clone).
 """
 
 from __future__ import annotations
@@ -28,6 +29,7 @@ from quotebench.scoring import normalize, parse_response  # noqa: E402
 
 ANSWERED = ["EXACT", "MINOR", "ALTERED", "FABRICATED", "WRONG_PLACE"]
 BEFORE = "cc1d009"  # results as first published, before the scorer fixes (DECISIONS D19)
+BEFORE_COUNTS = Path("results/archive/pre_d19_counts.json")
 PROSE = ["pride_prejudice", "origin_species"]
 
 
@@ -206,20 +208,33 @@ head("6 Trap questions by type")
 tr = base[base["should_abstain"]]
 T = tr[tr.label.isin(["CORRECT_REFUSAL", "TRAP_FABRICATED"])]
 tf = T[T.label == "TRAP_FABRICATED"].copy()
-tf["other"] = tf.fl.str.contains("SOURCE_CORRECTED")  # says itself that it is not from the named text
+tf["source"] = tf.fl.str.contains("SOURCE_CORRECTED")  # says with the quote that it is not from the named text
+tf["retracted"] = tf.fl.str.contains("SELF_RETRACTED")  # elsewhere: not there, does not exist, or taken back
+tf["fixed"] = tf.source | tf.retracted
 for m in RANK:
     g, f = T[T.model == m], tf[tf.model == m]
     k = lambda t: f"{int((f.trap_type == t).sum())}/{int((g.trap_type == t).sum())}"  # noqa: E731
     print(f"{LABEL[m]:22s} all {w(len(f), len(g))} | nonexistent {k('nonexistent_reference')} {w((f.trap_type=='nonexistent_reference').sum(), (g.trap_type=='nonexistent_reference').sum())}"
-          f" misattribution {k('misattribution')} absent_topic {k('absent_topic')} | corrected the source {int(f.other.sum())} | "
-          f"presented {w(len(f)-f.other.sum(), len(g))} | quote text exists in the named text (EXACT) {int((f.quote_label=='EXACT').sum())}")
-print("total failures", len(tf), "| corrected the source", int(tf.other.sum()), "| misattribution", int((tf.trap_type == 'misattribution').sum()),
-      "| EXACT in source", int((tf.quote_label == 'EXACT').sum()), "| presented as genuine", int((~tf.other).sum()))
+          f" misattribution {k('misattribution')} absent_topic {k('absent_topic')} | corrected the source {int(f.source.sum())}, retracted {int(f.retracted.sum())}, either {int(f.fixed.sum())} | "
+          f"no correction {w(len(f)-f.fixed.sum(), len(g))} | quote text exists in the named text (EXACT) {int((f.quote_label=='EXACT').sum())}")
+print("total failures", len(tf), "| corrected the source", int(tf.source.sum()), "| retracted", int(tf.retracted.sum()),
+      "| both", int((tf.source & tf.retracted).sum()), "| misattribution", int((tf.trap_type == 'misattribution').sum()),
+      "| EXACT in source", int((tf.quote_label == 'EXACT').sum()), "| no correction", int((~tf.fixed).sum()))
 print("t4-origin-0001 (Chapter XV of a 14-chapter book): failures", sorted(tf[tf.question_id == "t4-origin-0001"].model_label), "EXACT:", int((tf[tf.question_id == "t4-origin-0001"].quote_label == "EXACT").sum()))
 for m in RANK:
     b = summary["per_model"][m]["baseline"]
     f = tf[tf.model == m]
-    assert (b["trap_failure"]["k"], b["trap_presented"]["k"]) == (len(f), int((~f.other).sum())), m
+    assert (b["trap_failure"]["k"], b["trap_uncorrected"]["k"]) == (len(f), int((~f.fixed).sum())), m
+    assert (b["trap_source_corrected"]["k"], b["trap_self_retracted"]["k"]) == (int(f.source.sum()), int(f.retracted.sum())), m
+declined = tr[(tr.label == "CORRECT_REFUSAL") & tr.fl.str.contains("QUOTE_DESPITE_REFUSAL")]
+print("cannot_quote true with a quote all the same (counted as declining):", declined.model_label.value_counts().to_dict())
+print("- cautious prompt")
+tc = df[(df.condition == "cautious") & (df.repeat == 0) & (df.label == "TRAP_FABRICATED")]
+for m in RANK:
+    f, c = tc[tc.model == m].fl, summary["per_model"][m]["cautious"]
+    src, ret = f.str.contains("SOURCE_CORRECTED"), f.str.contains("SELF_RETRACTED")
+    assert (c["trap_failure"]["k"], c["trap_uncorrected"]["k"]) == (len(f), int((~src & ~ret).sum())), m
+    print(f"{LABEL[m]:22s} gave a quote {len(f)} | corrected the source {int(src.sum())}, retracted {int(ret.sum())} | no correction {int((~src & ~ret).sum())} of {c['trap_failure']['n']}")
 print("unreadable trap answers:", tr[tr.label == "UNPARSEABLE"].model_label.tolist())
 print("trap_failure in summary:", {LABEL[m]: summary['per_model'][m]['baseline']['trap_failure']['k'] for m in RANK})
 
@@ -343,32 +358,38 @@ for a, b in list(zip(RANK, RANK[1:])) + [(S[x], S[y]) for x, y in extra]:
     x = (r[1], r[0], r[8], r[7]) if sw else (r[0], r[1], r[7], r[8])
     q = lambda v: "<0.001" if v < 0.001 else f"{v:.3f}"  # noqa: E731
     print(f"| {RANK.index(a)+1}–{RANK.index(b)+1} | {LABEL[a]} vs {LABEL[b]} | {x[0]} / {x[1]} | {q(h[0])} | {r[3]}: {x[2]} / {x[3]} | {q(h[1])} |")
-print("\n| Model | Nonexistent reference | Misattribution | Absent topic | All | Corrected the source | Presented as genuine |\n|---|---|---|---|---|---|---|")
+print("\n| Model | Nonexistent reference | Misattribution | Absent topic | All | Corrected the source | Took it back | No correction |\n|---|---|---|---|---|---|---|---|")
 for m in RANK:
     g, f = T[T.model == m], tf[tf.model == m]
     k = lambda t: f"{int((f.trap_type == t).sum())}/{int((g.trap_type == t).sum())}"  # noqa: E731
-    print(f"| {LABEL[m]} | {k('nonexistent_reference')} | {k('misattribution')} | {k('absent_topic')} | {len(f)}/{len(g)}, {ci(len(f), len(g))} | {int(f.other.sum())} | {len(f)-int(f.other.sum())}/{len(g)}, {ci(len(f)-int(f.other.sum()), len(g))} |")
+    print(f"| {LABEL[m]} | {k('nonexistent_reference')} | {k('misattribution')} | {k('absent_topic')} | {len(f)}/{len(g)}, {ci(len(f), len(g))} | {int(f.source.sum())} | {int(f.retracted.sum())} | {len(f)-int(f.fixed.sum())}/{len(g)}, {ci(len(f)-int(f.fixed.sum()), len(g))} |")
 head("14 Scorer fixes: before (git " + BEFORE + ") and after")
-try:
-    blob = subprocess.run(["git", "show", f"{BEFORE}:results/scored.parquet"], capture_output=True, check=True).stdout
-except (OSError, subprocess.CalledProcessError):
-    sys.exit(f"skipped: commit {BEFORE} is not available here (all other sections are above)")
-old = pd.read_parquet(io.BytesIO(blob))
-old["ok"] = (old["label"] == "EXACT") & ~old["flags"].fillna("").str.contains("PARTIAL")
-key = ["model", "question_id", "condition", "repeat"]
-j = df.merge(old[key + ["label", "ok", "location_correct"]], on=key, how="outer", suffixes=("", "_old"), indicator=True)
-print("rows only in one file:", int((j["_merge"] != "both").sum()), "| labels changed, all conditions and repeats:", int((j.label != j.label_old).sum()))
-ob = old[(old.condition == "baseline") & (old.repeat == 0) & ~old.should_abstain]
+OLD = json.loads(BEFORE_COUNTS.read_text(encoding="utf-8"))["models"]  # plain prompt, run 0, real-answer questions
+ro = sorted(C, key=lambda m: -strict(OLD[m]))
 for m in RANK:
-    c0, c1 = counts(ob[ob.model == m]), C[m]
-    ch = j[(j.model == m) & (j.label != j.label_old)]
-    pl = ch[(ch.condition == "baseline") & (ch.repeat == 0)]
-    print(f"{LABEL[m]:22s} correct {c0['ok']} -> {c1['ok']} of 600 | strict {w(c0['ok'], c0['ans']+c0['unf'])} -> {w(c1['ok'], c1['ans']+c1['unf'])} | "
-          f"changed labels: plain {len(pl)}, all {len(ch)}:", [f"{r.question_id} {r.label_old}->{r.label}" for r in pl.itertuples()])
-ro = sorted(C, key=lambda m: -(lambda c: c["ok"] / (c["ans"] + c["unf"]))(counts(ob[ob.model == m])))
+    c0, c1 = OLD[m], C[m]
+    print(f"{LABEL[m]:22s} correct {c0['ok']} -> {c1['ok']} of 600 | strict {w(c0['ok'], c0['ans']+c0['unf'])} -> {w(c1['ok'], c1['ans']+c1['unf'])}")
 print("strict ranking before:", " > ".join(LABEL[m] for m in ro), "| same order:", ro == RANK)
 
 print("\n| Model | Correct before | Correct after | Gain | Strict before | Strict after | Strict rank |\n|---|---|---|---|---|---|---|")
 for m in RANK:
-    c0, c1 = counts(ob[ob.model == m]), C[m]
-    print(f"| {LABEL[m]} | {c0['ok']} | {c1['ok']} | +{c1['ok']-c0['ok']} | {100*c0['ok']/(c0['ans']+c0['unf']):.1f}% | {100*strict(c1):.1f}% | {ro.index(m)+1} → {RANK.index(m)+1} |")
+    c0, c1 = OLD[m], C[m]
+    print(f"| {LABEL[m]} | {c0['ok']} | {c1['ok']} | +{c1['ok']-c0['ok']} | {100*strict(c0):.1f}% | {100*strict(c1):.1f}% | {ro.index(m)+1} → {RANK.index(m)+1} |")
+
+print("\n- every changed label (needs the old commit)")
+try:
+    blob = subprocess.run(["git", "show", f"{BEFORE}:results/scored.parquet"], capture_output=True, check=True).stdout
+except (OSError, subprocess.CalledProcessError):
+    print(f"NOTICE: skipped, commit {BEFORE} is not available here. Everything else was printed.")
+    sys.exit(0)
+old = pd.read_parquet(io.BytesIO(blob))
+old["ok"] = (old["label"] == "EXACT") & ~old["flags"].fillna("").str.contains("PARTIAL")
+ob = old[(old.condition == "baseline") & (old.repeat == 0) & ~old.should_abstain]
+assert {m: counts(g) for m, g in ob.groupby("model")} == OLD, f"{BEFORE_COUNTS} disagrees with {BEFORE}"
+key = ["model", "question_id", "condition", "repeat"]
+j = df.merge(old[key + ["label", "ok", "location_correct"]], on=key, how="outer", suffixes=("", "_old"), indicator=True)
+print("rows only in one file:", int((j["_merge"] != "both").sum()), "| labels changed, all conditions and repeats:", int((j.label != j.label_old).sum()))
+for m in RANK:
+    ch = j[(j.model == m) & (j.label != j.label_old)]
+    pl = ch[(ch.condition == "baseline") & (ch.repeat == 0)]
+    print(f"{LABEL[m]:22s} changed labels: plain {len(pl)}, all {len(ch)}:", [f"{r.question_id} {r.label_old}->{r.label}" for r in pl.itertuples()])

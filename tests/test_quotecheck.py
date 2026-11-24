@@ -3,7 +3,10 @@
 import dataclasses
 import io
 import json
+import os
 import random
+import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -95,6 +98,25 @@ def test_benchmark_settings_are_used_unless_overridden():
     assert core.default_config() == ScoringConfig.load()
 
 
+def test_settings_bundled_in_the_wheel_come_first(tmp_path, monkeypatch):
+    text = (ROOT / "config" / "scoring.yaml").read_text(encoding="utf-8")
+    (tmp_path / "scoring.yaml").write_text(text.replace("partial_min_words: 6", "partial_min_words: 7"), encoding="utf-8")
+    monkeypatch.setattr(core, "__file__", str(tmp_path / "core.py"))
+    core.default_config.cache_clear()
+    try:
+        assert core.default_config().partial_min_words == 7
+        assert dataclasses.replace(core.default_config(), partial_min_words=6) == ScoringConfig.load()
+    finally:
+        core.default_config.cache_clear()
+
+
+def test_short_quote_flag(lease):
+    assert one("Tenant may keep one cat", lease).flags == ["SHORT_QUOTE"]  # 5 words
+    assert one("The Tenant may keep one cat", lease).flags == []  # 6
+    assert one("Tenant may keep one zebra", lease).flags == ["SHORT_QUOTE"]
+    assert [q.flags for q in check('"one cat"', lease, min_words=1).quotes] == [["SHORT_QUOTE"]]
+
+
 # --- numbers --------------------------------------------------------------------------------
 
 
@@ -158,6 +180,36 @@ def test_ellipsis_wrong_order_is_not_exact(lease):
     assert q.label == "ALTERED" and "OUT_OF_ORDER" in q.flags
 
 
+def test_similarity_is_1_only_for_exact(lease):
+    for text in ["due on the first day of each month ... The Tenant shall pay the Landlord",  # out of order
+                 "may keep one cat or one small dog ... shall pay ... The Tenant may keep one cat",
+                 "The [x] Tenant [y] may [z] keep [w] one cat",  # fragmented, the rest in one run
+                 "Tenant [a b c] may keep [x] one [d e f] cat [g h]"]:
+        q = one(text, lease)
+        assert q.label == "ALTERED" or "TOO_FRAGMENTED" in q.flags, q
+        assert 0 < q.similarity < 1 and not q.exact, q
+    q = one("due on the first day of each month ... The Tenant shall pay the Landlord", lease)
+    assert q.similarity == pytest.approx(1 - 1 / 14)  # one part out of order costs one word
+    q = one("No notice is needed in an emergency ... The Landlord may enter the apartment ... due on the first day of each month", lease)
+    assert q.similarity == pytest.approx(1 - 2 / 21) and q.flags == ["OUT_OF_ORDER"]
+
+
+def test_a_bracket_inside_a_hyphenated_word_is_not_exact():
+    s = Source.from_text("These obligations survive the end of the lease in all cases.")
+    for text in ["These obligations sur- [x]\nvive the end of the lease", "These obligations sur- [x]\nvive the end ... the lease in all cases"]:
+        q = one(text, s)
+        assert not q.exact and q.similarity < 1, q
+    assert q.label == "ALTERED" and q.similarity == pytest.approx(0.9)
+
+
+def test_short_part_out_of_order(lease):
+    q = one("may keep one cat or one small dog ... the fifth day ... causes to the floors", lease)
+    assert not q.exact and q.similarity < 1
+    s = Source.from_text("late fee one two three four five six seven eight nine ten eleven twelve")
+    q = one("one two three four five ... late fee ... six seven eight nine ten", s)
+    assert q.label == "ALTERED" and "OUT_OF_ORDER" in q.flags and q.similarity == pytest.approx(1 - 1 / 12)
+
+
 def test_ellipsis_with_one_invented_or_altered_part(lease):
     q = one("The Tenant shall pay the Landlord ... and dance on the roof at midnight", lease)
     assert not q.exact and [p.label for p in q.parts] == ["EXACT", "FABRICATED"]
@@ -207,6 +259,94 @@ def test_brackets(lease):
     assert check('"The [renter must never ever keep a cat or a] dog"', lease).quotes == []
 
 
+def test_bracket_may_stand_for_six_words():
+    for n, exact in [(0, True), (6, True), (7, False)]:
+        s = Source.from_text("alpha beta gamma delta " + "filler " * n + "epsilon zeta eta theta")
+        q = one("alpha beta gamma delta [x] epsilon zeta eta theta", s)
+        assert q.exact is exact and q.flags == (["BRACKETS"] if exact else q.flags), n
+        # with an ellipsis next to it there is no such limit
+        assert one("alpha beta gamma delta [x] ... epsilon zeta eta theta", s).flags == ["ELLIPSIS", "BRACKETS"]
+    assert core.BRACKET_GAP == 6
+
+
+def test_short_part_must_be_within_fifty_words():
+    for n, exact in [(50, True), (51, False)]:
+        s = Source.from_text("alpha beta gamma delta epsilon " + "filler " * n + "zeta eta theta iota")
+        q = one("alpha beta gamma delta epsilon ... zeta eta theta iota", s)
+        assert q.exact is exact and ("FAR_APART" in q.flags) is not exact
+        assert one("alpha beta gamma delta epsilon ... filler zeta eta theta iota", s).exact  # 5 words: no limit
+
+
+def _fragmented(text, source):
+    q = one(text, source)
+    assert q.exact is ("TOO_FRAGMENTED" not in q.flags) is ("BRACKETS" in q.flags) and q.exact is (q.similarity == 1), q
+    return not q.exact
+
+
+def test_too_fragmented():
+    s = Source.from_text("a1x b1x c1x d1x e1x f1x g1x h1x i1x j1x k1x l1x m1x n1x")
+    # the longest piece has fewer than three words
+    assert _fragmented("a1x b1x [q] c1x d1x [q] e1x f1x", s)
+    assert not _fragmented("a1x b1x [q] c1x d1x e1x [q] f1x g1x", s)
+    # more than half as many brackets as words: 4 for 7, 3 for 6
+    assert _fragmented("a1x b1x c1x [q] d1x [q] e1x [q] f1x [q] g1x", s)
+    assert not _fragmented("a1x b1x c1x [q] d1x [q] e1x [q] f1x", s)
+    # the brackets stand for more words than are left: 6 for 5, 5 for 5
+    assert _fragmented("a1x b1x c1x [q] j1x k1x", s)
+    assert not _fragmented("a1x b1x c1x [q] i1x j1x", s)
+    # what an ellipsis leaves out does not count
+    assert one("a1x b1x c1x ... j1x k1x", s).flags == ["ELLIPSIS", "SHORT_QUOTE"]
+    # a single piece is never too fragmented
+    assert one("[q] a1x b1x", s, min_words=1).label == "EXACT"
+
+
+def test_number_of_pieces_is_bounded():
+    assert core.MAX_PIECES == 100  # as the README says
+    s = Source.from_text(" ".join(f"w{i}x" for i in range(1000)))
+    for n, exact in [(core.MAX_PIECES, True), (core.MAX_PIECES + 1, False)]:
+        q = one("«" + " ... ".join(f"w{i}x w{i + 1}x w{i + 2}x" for i in range(0, 9 * n, 9)) + "»", s)
+        assert q.exact is exact and ("TOO_FRAGMENTED" in q.flags) is not exact and (q.similarity == 1) is exact
+
+
+@pytest.mark.parametrize("note", ["[emphasis not at all]", "【not】", "[^not]", "[sic]", "[SIC!]", "[12]", "[,]", "[not]", "[not ever]", "[–]"])
+def test_dropped_brackets_are_always_flagged(note):
+    s = Source.from_text("The Tenant shall sublet the apartment to any person.")
+    for text in [f"The Tenant shall{note} sublet the apartment", f"The Tenant shall {note} sublet the apartment",
+                 f"The Tenant shall sublet the apartment {note}", f"{note} The Tenant shall sublet the apartment"]:
+        for numbers in (True, False):
+            if numbers or note != "[12]":  # digits are not compared at all without numbers
+                q = one("«" + text + "»", s, compare_numbers=numbers)
+                assert q.exact and q.flags[0] == "BRACKETS", (text, q)
+    q = one(f"«The Tenant shall{note} sublet the house»", s)
+    assert not q.exact
+
+
+def test_dropped_brackets_are_flagged_on_inexact_quotes_too():
+    text = "We honour the colour of every neighbour who comes to live in this quiet old street of ours"
+    q = one(text.replace("honour", "honor [emphasis not added]"), Source.from_text(text))
+    assert q.label == "MINOR" and q.flags == ["BRACKETS"]
+
+
+def test_sic_belongs_to_the_word_before_it():
+    s = Source.from_text("The Tenant shall sublet the apartment to any person.")
+    assert one("The Tenant shall[sic] sublet the apartment", s).words == 6
+    assert not one("The Tenant shan[sic] sublet the apartment", s).exact
+
+
+def test_nothing_dropped_no_flag():
+    s = Source.from_text("The Tenant [,] shall sublet [●] the apartment 3 to [any] person.")
+    for text in ["The Tenant [,] shall sublet [●] the apartment 3 to [any] person", "[T]he Tenant shall sublet the apartment 3 to any person",
+                 "The [Tenant](https://example.org/a) [shall](#b) [sublet]() the apartment 3 to any person"]:
+        assert one("«" + text + "»", s).flags == [], text
+    q = one("«The Tenant [shall](not) sublet the apartment 3 to any person»", s)
+    assert q.exact and q.flags == ["BRACKETS"]
+    q = one("«The Tenant [shall](not) sublet ... 3 to any person»", s)
+    assert q.exact and q.flags == ["ELLIPSIS", "BRACKETS"]
+    # words that only look like a formatting tag are compared
+    assert not one("«The Tenant shall <b not> sublet the apartment 3»", s).exact
+    assert one('«The <span class="x">Tenant</span > shall<br/> sublet the apartment 3»', s).exact
+
+
 def test_brackets_of_the_source_itself():
     s = Source.from_text("The fee must be paid within [30] days of the [first] notice.")
     assert one("The fee must be paid within [30] days of the [first] notice", s).flags == []
@@ -237,6 +377,15 @@ def test_block_quote_attribution(lease):
     assert q.label == "EXACT" and q.flags == ["ATTRIBUTION_IGNORED"]
     q = one("> No notice is needed in an emergency.\n> — Except on every second Tuesday of the month.", lease)
     assert not q.exact
+
+
+def test_attribution_is_only_ignored_if_enough_words_are_left(lease):
+    text = "> keep one cat\n> — Lease, section 4"
+    q = one(text, lease)
+    assert not q.exact and "ATTRIBUTION_IGNORED" not in q.flags
+    q = one(text, lease, min_words=3)
+    assert q.exact and q.flags == ["ATTRIBUTION_IGNORED", "SHORT_QUOTE"] and q.words == 3
+    assert not one(text, lease, min_words=4).exact
 
 
 def test_multi_paragraph_quote(lease):
@@ -287,6 +436,21 @@ def test_long_quotes(novel):
     half = text.split()
     dropped = " ".join(half[:800] + half[850:])
     assert one(f"« {dropped} »", novel).label == "ALTERED"
+
+
+def test_words_missing_between_the_pieces_of_a_long_quote_cost():
+    w = [f"w{i}x" for i in range(3000)]
+    s = Source.from_text(" ".join(w))
+    assert one(" ".join(w[:600]), s).exact
+    # 20 words left out exactly where one piece ends and the next begins: each piece is exact
+    q = one(" ".join(w[:300] + w[320:620]), s)
+    assert q.label == "ALTERED" and q.similarity == pytest.approx(1 - 20 / 620) and {p.label for p in q.parts} == {"EXACT"}
+    q = one(" ".join(w[:300] + w[2000:2300]), s)  # at most one piece's length
+    assert q.label == "ALTERED" and q.similarity == pytest.approx(1 - 150 / 750)
+    q = one(" ".join(w[:300] + w[295:595]), s)  # 5 words repeated
+    assert q.label == "ALTERED" and q.similarity == pytest.approx(1 - 5 / 600) and q.flags == []
+    q = one(" ".join(w[:300] + w[290:590]), s)  # 10 words back: out of order
+    assert q.label == "ALTERED" and q.flags == ["OUT_OF_ORDER"] and q.similarity == pytest.approx(1 - 1 / 600)
 
 
 # --- Russian -------------------------------------------------------------------------------------
@@ -347,7 +511,7 @@ def test_random_soup_never_crashes(lease):
             json.dumps(report.to_dict())
             for q in report.quotes:
                 assert q.label in LABELS and 0 <= q.similarity <= 1
-                assert (q.label == "EXACT") == (q.similarity == 1 and q.exact)
+                assert (q.label == "EXACT") is (q.similarity == 1) is q.exact
                 if not q.parts and q.source_start is not None:
                     assert lease.text[q.source_start : q.source_end] == q.best_match
 
@@ -366,6 +530,21 @@ def test_whole_novel_is_fast(novel):
     report = check("\n\n".join(f'"{quote.replace("single", w)}"' for w in ["single", "married", "wealthy", "lonely"] * 5), source)
     assert [q.label for q in report.quotes[:2]] == ["EXACT", "ALTERED"]
     assert time.perf_counter() - start < 5
+
+
+@pytest.mark.parametrize("quote", [
+    "a" * 100_000, "a" * 100_000 + " b c d e f", "a[" * 50_000 + " b c d e f", "a[b]" * 25_000 + " x y z w", "[a](" + "b" * 100_000 + " c d e f g",
+    "[emphasis" + " a" * 50_000 + " b c d", "[1" + " " * 100_000 + "b c d e f",
+    " ... ".join(["the cat"] * 10_000), " ... ".join(["the cat sat"] * 5000 + ["zzz yyy xxx www vvv"]), " ... ".join(["the"] * 20_000),
+    " [x] ".join(["the cat sat"] * 5000),
+], ids=["letters", "letters and words", "open brackets", "in-word brackets", "link", "note", "spaces",
+        "pieces", "pieces, one wrong", "one-word pieces", "bracket pieces"])
+def test_cost_is_bounded(quote):
+    source = Source.from_text("the cat sat on the mat and " * 3000)
+    start = time.perf_counter()
+    for numbers in (True, False):
+        check("«" + quote + "»", source, min_words=1, compare_numbers=numbers)
+    assert time.perf_counter() - start < 10  # quadratic: a minute or more; now: about a second
 
 
 @pytest.mark.parametrize("kwargs", [
@@ -425,6 +604,61 @@ def test_cli_stdin(capsys, monkeypatch):
     stdin = io.TextIOWrapper(io.BytesIO("«Мой дядя самых честных правил»".encode()))
     monkeypatch.setattr("sys.stdin", stdin)
     assert run(capsys, "--source", LEASE_FILE, "--input", "-", "--language", "ru")[0] == 1
+
+
+def _crlf_files(tmp_path, bom):
+    src, answer = tmp_path / "source.txt", tmp_path / "answer.txt"
+    src.write_bytes(bom + "Heading\r\n\r\nThe Tenant may keep\r\none cat or one small dog.\r\n".encode())
+    answer.write_bytes(bom + "It says:\r\n\r\n“The Tenant may keep one cat”\r\nand\r\n> one cat or one\r\n> small dog.\r\n".encode())
+    return src, answer
+
+
+@pytest.mark.parametrize("bom", [b"", b"\xef\xbb\xbf"], ids=["no bom", "bom"])
+def test_positions_refer_to_the_text_as_given(capsys, tmp_path, monkeypatch, bom):
+    src, answer = _crlf_files(tmp_path, bom)
+    text, answer_text = (f.read_bytes().decode("utf-8-sig") for f in (src, answer))
+    source = Source.from_file(src)
+    assert source.text == text and "\r\n" in text
+    report = check(answer_text, source)
+    code, out, _ = run(capsys, "--source", src, "--input", answer, "--json")
+    data = json.loads(out)
+    assert code == 0 and data["quotes"] == report.to_dict()["quotes"] and len(data["quotes"]) == 2
+    q, block = data["quotes"]
+    assert (q["source_start"], q["start"]) == (text.index("The Tenant"), answer_text.index("The Tenant"))
+    assert text[q["source_start"] : q["source_end"]] == q["best_match"] == "The Tenant may keep\r\none cat"
+    assert answer_text[q["start"] : q["end"]] == q["text"] == "The Tenant may keep one cat"
+    assert answer_text[block["start"] : block["end"]] == "one cat or one\r\n> small dog."
+    monkeypatch.setattr("sys.stdin", io.TextIOWrapper(io.BytesIO(answer.read_bytes())))
+    assert json.loads(run(capsys, "--source", src, "--input", "-", "--json")[1])["quotes"] == data["quotes"]
+    out = run(capsys, "--source", src, "--input", answer)[1]
+    assert "quote, line 3:" in out and "source: line 3, characters 11-39" in out and "quote, line 5:" in out
+
+
+def test_byte_order_mark_in_text_given_as_a_string(lease):
+    s = Source.from_text("\ufeff" + LEASE)
+    text = "\ufeff> The Tenant may keep one cat or one small dog."
+    q = check(text, s).quotes[0]
+    assert q.kind == "block" and q.exact and s.text[q.source_start : q.source_end] == q.best_match and text[q.start : q.end] == q.text
+    q = check("\ufeff“RESIDENTIAL LEASE - 14 HARROW LANE”", s).quotes[0]
+    assert q.exact and s.text[q.source_start : q.source_end] == q.best_match == "RESIDENTIAL LEASE - 14 HARROW LANE"
+
+
+@pytest.mark.parametrize("end", ["\n", "\r\n", "\r"])
+def test_line_ends_do_not_matter(end):
+    s = Source.from_text(f"one{end}two{end}{end}These obligations sur-{end}vive the end of the lease.")
+    q = one(f"These obligations survive{end}the end of the lease", s)
+    assert q.exact and s.text[q.source_start : q.source_end] == q.best_match and s.line_of(q.source_start) == 4
+    assert [s.line_of(s.text.index(w)) for w in ("one", "two", "vive")] == [1, 2, 5]
+
+
+@pytest.mark.parametrize("options", [[], ["--json"], ["--help"]])
+def test_cli_reader_that_closes_the_pipe(options):
+    read_end, write_end = os.pipe()
+    os.close(read_end)
+    args = [sys.executable, "-m", "quotecheck", "--source", str(LEASE_FILE), "--input", str(ANSWER_FILE), *options]
+    p = subprocess.run(args, stdout=write_end, stderr=subprocess.PIPE, cwd=ROOT, env={**os.environ, "PYTHONPATH": str(ROOT / "src")})
+    os.close(write_end)
+    assert (p.returncode, p.stderr) == (141, b"")
 
 
 def test_cli_usage_errors(capsys, tmp_path):

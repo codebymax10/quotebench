@@ -38,12 +38,15 @@ _CLOSE_PUNCT = ".,;:!?…)]}"
 
 _BLANK = re.compile(r"[ \t]*$")
 _FENCE = re.compile(r"[ \t]*(?:```|~~~)")
-_BLOCK_LINE = re.compile(r"[ \t]*(?:(?:[-*+]|\d{1,3}[.)])[ \t]+)?(?:>[ \t]?)+")
+_BLOCK_LINE = re.compile(r"\ufeff?[ \t]*(?:(?:[-*+]|\d{1,3}[.)])[ \t]+)?(?:>[ \t]?)+")
 _NEW_ITEM = re.compile(r"[ \t]*(?:[-*+][ \t]|\d{1,3}[.)][ \t]|#{1,6}[ \t]|\|)")
 _ADMONITION = re.compile(r"\s*\[!\w+\]")
 
 # What may follow or end a block quote without being part of it: "— Jane Austen", "(Section 4)".
-_ATTRIBUTION_TAIL = re.compile(r"[\s*_.,;]*(?:(?:[—–]|--?)\s*[^\n]{1,120}|\([^()\n]{1,120}\)\.?|\[[^\[\]\n]{1,120}\]\.?)?[\s*_]*")
+# (Possessive quantifiers: a long run of spaces or asterisks is read once.)
+_ATTRIBUTION_TAIL = re.compile(
+    r"[\s*_.,;]*+(?:(?:[—–]|--?+)\s*+[^\n]{1,120}+|\([^()\n]{1,120}\)\.?|\[[^\[\]\n]{1,120}\]\.?)?[\s*_]*+"
+)
 _ATTRIBUTION_LINE = re.compile(r"\n\s*[*_]*(?:—|–|--?)\s*(?=\S)([^\n]{1,120})$")
 
 # Words that start with an apostrophe, not with an opening quote.
@@ -216,7 +219,8 @@ def _inline_quotes(text: str, runs: list[list[_Para]]) -> tuple[list[ExtractedQu
         pairs, unclosed, n = _scan_run(text, run, marks, mark_pos, family_pos)
         stray += n
         top = _outermost(pairs)
-        singles = [s for p in run for s in _single_quotes(text, p, top)]
+        starts = [s for s, _, _ in top]
+        singles = [s for p in run for s in _single_quotes(text, p, top, starts)]
         top = _outermost(top + singles)
         starts = [s for s, _, _ in top]
         spans += [(s, e, kind, True) for s, e, kind in top]
@@ -399,9 +403,8 @@ def _carries(text: str, o: _Open, nxt: _Para, here: int, limit: int, family_pos)
 _SINGLE = re.compile(r"['‘’]")
 
 
-def _single_quotes(text: str, para: _Para, doubles: list[tuple[int, int, str]]):
+def _single_quotes(text: str, para: _Para, doubles: list[tuple[int, int, str]], starts: list[int]):
     """'...' and ‘...’ pairs inside one paragraph, outside double quotation marks."""
-    starts = [s for s, _, _ in doubles]
 
     def inside(i: int) -> bool:
         k = bisect_right(starts, i) - 1

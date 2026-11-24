@@ -33,7 +33,7 @@ from bisect import bisect_left
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Iterable, Iterator, Sequence
 
 import yaml
 from rapidfuzz.distance import Indel
@@ -629,16 +629,18 @@ class ParsedResponse:
     method: str = "strict"  # strict | extracted | unparseable
     error: str = ""
     n_objects: int = 1  # >1: the answer contained several JSON answers (e.g. a self-correction)
+    remarks: str = ""  # everything the answer says outside the quote and location of its first JSON answer
+    taken_back: bool = False  # the last of several JSON answers has cannot_quote true
 
 
 _FENCE = re.compile(r"^```(?:json)?\s*(.*?)\s*```$", re.S | re.I)
 
 
-def _first_json_object(text: str) -> str | None:
-    """The first balanced {...} in ``text``, respecting JSON strings."""
+def _balanced(text: str) -> Iterator[tuple[int, int]]:
+    """(start, end) of each balanced {...} in ``text``, respecting JSON strings, left to right."""
     start = text.find("{")
     while start != -1:
-        depth, in_str, esc = 0, False, False
+        depth, in_str, esc, end = 0, False, False, None
         for i in range(start, len(text)):
             ch = text[i]
             if in_str:
@@ -655,9 +657,22 @@ def _first_json_object(text: str) -> str | None:
             elif ch == "}":
                 depth -= 1
                 if depth == 0:
-                    return text[start : i + 1]
-        start = text.find("{", start + 1)
-    return None
+                    end = i + 1
+                    break
+        if end is not None:
+            yield start, end
+        start = text.find("{", start + 1 if end is None else end)
+
+
+def _json_objects(text: str) -> list[tuple[int, int, dict]]:
+    """(start, end, value) of each valid JSON object in ``text``; invalid ones are passed over."""
+    out = []
+    for start, end in _balanced(text):
+        try:
+            out.append((start, end, json.loads(text[start:end])))
+        except json.JSONDecodeError:
+            pass
+    return out
 
 
 def _truthy(v) -> bool:
@@ -666,58 +681,54 @@ def _truthy(v) -> bool:
     return bool(v)
 
 
+def _refuses(obj: dict) -> bool:
+    return _truthy(obj.get("cannot_quote", False)) or _truthy(obj.get("cannot_locate", False))
+
+
+def _strings(obj: dict, leave_out: tuple[str, ...] = ("quote",)) -> list[str]:
+    return [v for k, v in obj.items() if isinstance(v, str) and k not in leave_out]
+
+
 def parse_response(raw: str | None) -> ParsedResponse:
-    """Parse a model's JSON answer: strictly first, then the first JSON object in the text."""
+    """Parse a model's JSON answer: strictly first, then the first JSON object in the text.
+
+    SPEC §7: otherwise the first valid JSON object in the text (inside a code fence or not). A model
+    that gives a second, "corrected" answer is judged on its first one; what the rest of the answer
+    says is kept in ``remarks`` and ``taken_back``, which only describe answers to trick questions.
+    """
     if not isinstance(raw, str) or not raw.strip():  # None, or NaN from a dataframe
         return ParsedResponse(False, method="unparseable", error="empty response")
     text = raw.strip()
-    obj, method, n_objects = None, "strict", 1
+    obj, method, later, outside = None, "strict", [], ""
     try:
         obj = json.loads(text)
     except json.JSONDecodeError:
-        # SPEC §7: otherwise the first JSON object in the text (inside a code fence or not).
-        # A model that gives a second, "corrected" answer is judged on its first one.
         method = "extracted"
-        candidates = []
+        found = _json_objects(text)
         fenced = _FENCE.match(text)
-        if fenced:
-            candidates.append(fenced.group(1))
-        first = _first_json_object(text)
-        if first is not None:
-            candidates.append(first)
-        for candidate in candidates:
-            try:
-                obj = json.loads(candidate)
-                break
-            except json.JSONDecodeError:
-                obj = None
-        if first is not None:
-            n_objects = 1 + _count_more_objects(text, text.find(first) + len(first))
+        try:
+            obj = json.loads(fenced.group(1) if fenced else "")
+        except json.JSONDecodeError:
+            obj = found[0][2] if found else None
+        later = [value for _, _, value in found[1:]]
+        for start, end, _ in reversed(found):
+            text = text[:start] + " " + text[end:]
+        outside = text
     if not isinstance(obj, dict):
         return ParsedResponse(False, method="unparseable", error="no JSON object found")
     quote = obj.get("quote") or ""
     location = obj.get("location") or ""
-    refused = _truthy(obj.get("cannot_quote", False)) or _truthy(obj.get("cannot_locate", False))
+    notes = _strings(obj, ("quote", "location"))
     return ParsedResponse(
         True,
         quote=quote if isinstance(quote, str) else json.dumps(quote, ensure_ascii=False),
         location=location if isinstance(location, str) else json.dumps(location, ensure_ascii=False),
-        refused=refused,
+        refused=_refuses(obj),
         method=method,
-        n_objects=n_objects,
+        n_objects=1 + len(later),
+        remarks="\n".join([*notes, outside, *(x for o in later for x in _strings(o))]).strip(),
+        taken_back=bool(later) and _refuses(later[-1]),
     )
-
-
-def _count_more_objects(text: str, start: int) -> int:
-    n, rest = 0, text[start:]
-    while (obj := _first_json_object(rest)) is not None:
-        try:
-            if isinstance(json.loads(obj), dict):
-                n += 1
-        except json.JSONDecodeError:
-            pass
-        rest = rest[rest.find(obj) + len(obj):]
-    return n
 
 
 # --------------------------------------------------------------------------------------
@@ -744,7 +755,7 @@ def score_answer(question: dict, raw_response: str | None, error: str | None = N
     ``question`` needs ``text_id``, ``task`` and ``should_abstain``; Tasks 1–2 also need
     ``target_units`` (unit idx values of the ground-truth passage).
     """
-    from .locations import location_correct, says_other_source
+    from .locations import location_correct, says_not_there, says_other_source
 
     out = {"label": None, "similarity": None, "target_similarity": None, "flags": [],
            "match_units": [], "match_text": "", "quote_label": None, "location_correct": None,
@@ -771,8 +782,16 @@ def score_answer(question: dict, raw_response: str | None, error: str | None = N
             return {**out, "label": CORRECT_REFUSAL}
         s, _ = score_anywhere(tokens, index)
         flags = out["flags"] + s.flags
-        if says_other_source(question["text_id"], question.get("play"), parsed.location, parsed.quote):
-            flags.append("SOURCE_CORRECTED")  # still a failure, but not presented as from the named text
+        # Both flags leave the answer a failure; they record that it corrects itself.
+        # SOURCE_CORRECTED: its location (or a remark inside the quote) says the line is not from the
+        # named text. SELF_RETRACTED: it is taken back by a later JSON answer, or the answer says
+        # anywhere that the passage does not exist or, outside that location, is not in the text.
+        text_id, play = question["text_id"], question.get("play")
+        if says_other_source(text_id, play, parsed.location, parsed.quote):
+            flags.append("SOURCE_CORRECTED")
+        reference = (question.get("prompt_vars") or {}).get("reference", "")
+        if parsed.taken_back or says_not_there(text_id, play, reference, parsed.remarks, parsed.location, parsed.quote):
+            flags.append("SELF_RETRACTED")
         return {**out, **s.to_dict(), "label": TRAP_FABRICATED, "quote_label": s.label, "flags": flags}
 
     if not gave_quote:
@@ -782,25 +801,30 @@ def score_answer(question: dict, raw_response: str | None, error: str | None = N
         s = score_targeted(tokens, index, question["target_units"])
         return {**out, **s.to_dict(), "quote_label": s.label, "flags": out["flags"] + s.flags}
 
-    # topic: any real passage counts; then check the stated location, which is right if the
-    # passage stands there at all, however many other places have it word for word
+    # topic: any real passage of the text, or of the play, asked about counts; then check the stated
+    # location, which is right if the passage stands there at all, however many other places have
+    # it word for word
     s, places = score_anywhere(tokens, index)
     res = {**out, **s.to_dict(), "quote_label": s.label, "flags": out["flags"] + s.flags}
     if s.match is not None and s.label in (EXACT, MINOR, ALTERED):
         titles = {u["chapter"]: u.get("chapter_title", "") for u in units if "chapter" in u}
         kw = {"chapter_titles": titles} if question["text_id"] in ("pride_prejudice", "origin_species") else {}
+        play = question.get("play")
+
+        def in_play(m: Match) -> bool:
+            return not play or all(units[i].get("play") == play for i in m.units)
 
         def stands_there(m: Match) -> bool | None:
-            return location_correct(question["text_id"], parsed.location, [units[i] for i in m.units], **kw)
+            """None if no location could be read; a passage of another play stands in no place of this one."""
+            right = location_correct(question["text_id"], parsed.location, [units[i] for i in m.units], **kw)
+            return right if right is None else right and in_play(m)
 
-        res["location_correct"] = stands_there(s.match)
-        if res["location_correct"] is False:
-            play = question.get("play")  # a passage of another play is not from the play asked for
-            there = next((m for m in places if stands_there(m)
-                          and (not play or all(units[i].get("play") == play for i in m.units))), None)
-            if there is not None:
-                res.update(location_correct=True, match_units=there.units, match_text=there.text)
-        if s.label in (EXACT, MINOR) and res["location_correct"] is False:
+        best = next((m for m in [s.match, *places] if in_play(m) and stands_there(m)),
+                    next((m for m in [s.match, *places] if in_play(m)), s.match))
+        if best is not s.match:
+            res.update(match_units=best.units, match_text=best.text)
+        res["location_correct"] = stands_there(best)
+        if s.label in (EXACT, MINOR) and (res["location_correct"] is False or not in_play(best)):
             res["label"] = WRONG_PLACE
     return res
 
