@@ -177,12 +177,20 @@ def parse_constitution(loc: str) -> dict | None:
 
 
 def check_constitution(loc: dict, unit: dict) -> bool:
+    """Is ``unit`` inside the stated place?
+
+    Articles V–VII and Amendments I–XII, XVI, XVII, XIX and XXVII are printed without section
+    numbers; editions that number sections there number the paragraphs. "Section N" of such a
+    text is therefore its Nth paragraph and nothing else: "Amendment XIX, Section 1" is its first
+    paragraph, "Section 2" its second, and "Section 3" does not exist. Where the edition prints
+    section numbers, the number must match.
+    """
     if unit["part"] != loc["part"]:
         return False
-    for key in ("article", "amendment", "section", "clause"):
-        if key in loc and unit.get(key) != loc[key]:
-            return False
-    return True
+    if "section" in loc and unit.get("section") is None:
+        paragraph, inside = loc["section"], loc.get("clause", 1)
+        loc = {k: v for k, v in loc.items() if k != "section"} | {"clause": paragraph if inside == 1 else None}
+    return all(unit.get(key) == loc[key] for key in ("article", "amendment", "section", "clause") if key in loc)
 
 
 # ---------------------------------------------------------------------------------------
@@ -190,23 +198,36 @@ def check_constitution(loc: dict, unit: dict) -> bool:
 
 # Pride and Prejudice was first published in three volumes (23, 19 and 19 chapters); many
 # editions still number chapters within volumes. Gutenberg #1342 numbers them 1–61.
-_PP_VOLUME_OFFSET = {1: 0, 2: 23, 3: 42}
+_PP_VOLUMES = {1: (0, 23), 2: (23, 19), 3: (42, 19)}  # volume: (chapters before it, its chapters)
+_CHAPTER = re.compile(r"\b(?:chapter|chap|ch)\.?\s*" + _NUM + r"\b", re.I)
+_VOLUME = re.compile(r"\b(?:volume|vol)\.?\s*" + _NUM + r"\b", re.I)
+NO_SUCH_CHAPTER = -1  # a chapter the novel does not have, or numbers that contradict each other
+
+
+def _volume_chapter(volumes: set, chapters: set[int]) -> int:
+    """The continuous chapter number (1–61) meant by a location that also names a volume.
+
+    "Volume III, Chapter 14", "Chapter 14 (Volume III)", "Chapter 56 (Volume III)" and
+    "Chapter 56 (Volume III, Chapter 14)" all mean chapter 56. If the numbers cannot all be
+    true of one chapter ("Chapter 50 (Volume III, Chapter 14)"), they mean no chapter.
+    """
+    if len(volumes) != 1 or not volumes <= _PP_VOLUMES.keys():
+        return NO_SUCH_CHAPTER
+    before, length = _PP_VOLUMES[min(volumes)]
+    meant = [n for n in range(before + 1, before + length + 1) if chapters <= {n, n - before}]
+    return meant[0] if meant else NO_SUCH_CHAPTER  # never more than one
 
 
 def parse_chapter(loc: str, text_id: str, chapter_titles: dict[int, str] | None = None) -> dict | None:
     s = loc.strip()
     if text_id == "origin_species" and re.search(r"\bintroduction\b", s, re.I):
         return {"chapter": 0}
-    ch = re.search(r"\b(?:chapter|chap|ch)\.?\s*" + _NUM + r"\b", s, re.I)
-    if ch and to_int(ch.group(1)) is not None:
-        n = to_int(ch.group(1))
-        vol = re.search(r"\b(?:volume|vol)\.?\s*" + _NUM + r"\b", s, re.I)
-        if text_id == "pride_prejudice" and vol:
-            v = to_int(vol.group(1))
-            if v not in _PP_VOLUME_OFFSET:
-                return {"chapter": -1}  # a volume the novel does not have
-            n += _PP_VOLUME_OFFSET[v]
-        return {"chapter": n}
+    chapters = [n for m in _CHAPTER.finditer(s) if (n := to_int(m.group(1))) is not None]
+    if chapters:
+        volumes = {to_int(m.group(1)) for m in _VOLUME.finditer(s)}
+        if text_id == "pride_prejudice" and volumes:
+            return {"chapter": _volume_chapter(volumes, set(chapters))}
+        return {"chapter": chapters[0]}
     if chapter_titles:
         low = s.lower()
         for n, title in chapter_titles.items():
@@ -259,3 +280,59 @@ def parse_any(text_id: str, location: str) -> dict | None:
     if not location or not location.strip():
         return None
     return PARSERS[text_id][0](location)
+
+
+# ---------------------------------------------------------------------------------------
+# Trick questions: does the answer itself say that the line is not from the named text?
+
+# How a model may name the text (or play) the question asked about.
+_NAMED_TEXT = {
+    "bible_kjv": r"(?:King James(?: Version| Bible)?|KJV|Holy Bible|Bible)",
+    "us_constitution": r"(?:(?:U\.\s?S\.|US|United States) )?Constitution",
+    "pride_prejudice": r"Pride (?:and|&) Prejudice",
+    "origin_species": r"(?:On )?(?:T|t)he Origin of Species|Origin of Species",
+}
+# Other works a line may really come from: all plays of Shakespeare, the novels of Jane Austen, the
+# best-known American documents and the other books of Darwin. Matched with their capitals.
+_OTHER_WORKS = r"""
+All's Well That Ends Well|Antony and Cleopatra|As You Like It|Comedy of Errors|Coriolanus|Cymbeline|Hamlet|
+(?:1|2) Henry IV|Henry (?:VIII|VI|V|IV)|Julius Caesar|King John|King Lear|Love's Labou?r's Lost|Macbeth|
+Measure for Measure|Merchant of Venice|Merry Wives of Windsor|Midsummer Night's Dream|Much Ado About Nothing|
+Othello|Pericles|Richard (?:III|II)|Romeo and Juliet|Taming of the Shrew|Tempest|Timon of Athens|
+Titus Andronicus|Troilus and Cressida|Twelfth Night|Two Gentlemen of Verona|Two Noble Kinsmen|Winter's Tale|
+Emma|Lady Susan|Mansfield Park|Northanger Abbey|Persuasion|Pride and Prejudice|Sanditon|Sense and Sensibility|
+Articles of Confederation|Common Sense|Declaration of Independence|Declaration of the Rights of Man|
+Emancipation Proclamation|Federalist Papers|Federalist No\.|Gettysburg Address|Mayflower Compact|
+Northwest Ordinance|Pledge of Allegiance|Star-Spangled Banner|Constitution|
+Descent of Man|Expression of the Emotions|Variation of Animals and Plants|Voyage of the Beagle|
+Origin of Species|Principles of Biology"""
+_OTHER_WORKS = _OTHER_WORKS.replace("\n", "")
+_AUTHOR = r"(?:(?:William |Jane |Charles )?(?:Shakespeare|Austen|Darwin|Lincoln|Jefferson|Spencer)'s )?"
+# "not in", "not from", "does not appear in", "isn't found in" … the named text
+_DENIED_IN = (r"(?:\bnot|n't)\s+(?:(?:actually|a|line|quote|quotation|passage|part|found|appear|appears|occur|"
+              r"occurs|present|contained)\s+)*(?:in|from|of)\s+(?:the\s+(?:text\s+of\s+)?)?")
+
+
+def says_other_source(text_id: str, play: str | None, location: str, quote: str = "") -> bool:
+    """True if an answer to a trick question says itself that its quote is not from the named text.
+
+    Read from the stated location, and from remarks in brackets inside the quote. Three forms:
+
+    1. it denies the named text: "Not in Macbeth", "does not appear in Hamlet";
+    2. it names another work and says "not <named text>": "Hamlet, Act 3 (not Macbeth)";
+    3. it begins with the title of another work and does not mention the named text at all:
+       "Twelfth Night, Act 1, Scene 1".
+
+    Anything less plain does not count. A different place in the named text does not count ("Article
+    IV, Section 2" for Article V, Section 2), and neither does "spoken by Horatio, not Hamlet".
+    """
+    named = rf"(?:{re.escape(play) if play else _NAMED_TEXT[text_id]})\b(?!'s)"
+    other = rf"\b(?!{named})(?:{_OTHER_WORKS})(?!\w|'s)"
+    location, quote = (re.sub(r"\s+", " ", x.replace("’", "'")).strip() for x in (location, quote))
+    for text in (location, *re.findall(r"[\[(]([^\])]*)[\])]", quote)):
+        if re.search(rf"(?i:{_DENIED_IN}){_AUTHOR}{named}", text):
+            return True
+        if re.search(rf"(?i:\bnot (?:the )?){_AUTHOR}{named}", text) and re.search(other, text):
+            return True
+    title = rf"(?:From )?{_AUTHOR}(?:The |the |A )?(?:King )?{other}(?=\s*(?:[,.;:(—–-]|$))"
+    return bool(re.match(title, location)) and not re.search(rf"\b{named}", location)

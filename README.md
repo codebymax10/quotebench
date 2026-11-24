@@ -13,29 +13,58 @@ names the passage and the system fetches the text.
 
 QuoteBench measures **verbatim quotation only** — not hallucination in general.
 
-> **Status:** v1.0 in progress. Data collection is complete for 9 models; the write-up is not
-> finished. Numbers below are generated from `results/summary.json` and may still change before
-> the v1.0 tag.
+> **Version 1.0** (November 2026). Every number below comes from the files in `results/`.
+> The write-up is [`PAPER.md`](PAPER.md).
+
+## Headline findings
+
+*Plain prompt, 95% intervals in brackets. Drafted by an AI model (Claude) from `results/`; five of the nine models are Claude models. Details and caveats: [`PAPER.md`](PAPER.md).*
+
+- **The ranking depends on how declining is counted.** Claude Sonnet 4.6 is second among the quotations it attempted (93.5%, 375/401 [90.7–95.5]) but seventh over all 600 questions (62.5%, 375/600 [58.6–66.3]), because it declined 199 of them. On the 401 questions it attempted, it is not clearly different from Claude Sonnet 5.5 (375 vs 385 correct; paired test p = 0.087). Read every rate below with this in mind.
+- **Models differ widely.** Of attempted quotations, Claude Opus 5.5 got 97.1% word for word (575/592 [95.4–98.2]), Llama 4 Maverick 21.4% (125/585 [18.2–24.9]). Opus 5.5 is ahead of every other model in paired tests; over all 600 questions it got 95.8% (575/600 [93.9–97.2]).
+- **Prose is much harder than the Bible.** DeepSeek V4 Pro, which declined nothing, got 98.3% on the Bible (226/230 [95.6–99.3]) and 52.5% on *Pride and Prejudice* and Darwin together (84/160 [44.8–60.1]). All nine models were worse on prose; for Opus 5.5 it was 230/230 against 138/152.
+- **Fame helps most models.** Six of nine were clearly better on famous than on random passages (Gemini 3.1 Flash Lite: 125/138 vs 220/307; Llama 4 Maverick: 63/133 vs 11/303). The intervals overlap for Opus 5.5, Sonnet 5.5 and Sonnet 4.6.
+- **"Only quote if you are certain" helps some models, at a price.** Wrong quotations out of 600 fell for Claude Haiku 4.5 (150 to 98), Sonnet 4.6 (26 to 7), GPT-6 Luna (81 to 59) and Haiku 5.5 (80 to 59). Sonnet 4.6 also lost 110 correct ones (375 to 265). There was no clear change for Opus 5.5, Sonnet 5.5, DeepSeek or Gemini.
+- **Giving a quote on a trick question is not the same as being fooled.** GPT-6 Luna gave one on 25 of 100 trick questions, but in 20 of the 25 it said itself that the line comes from another work. Gemini presented 15 of 100 as genuine, Llama 24 of 100. (The rule that separates these was written after the answers were seen.)
+- **Looking the text up removes wording errors by design,** and only 1 of 2,300 references did not exist (Bible and Constitution only). This says little about knowledge: on most of these questions the prompt already contains the reference, and whether a passage fits the topic is not checked.
 
 ## Results
 
 Interactive leaderboard: **[codebymax10.github.io/quotebench](https://codebymax10.github.io/quotebench/)** (source: [`docs/index.html`](docs/index.html)) (sortable table, charts, per-text breakdown).
 
 <!-- results:start -->
-| Model | Correct (strict) | Correct | Made up | Fell for trick questions | Answered |
-|---|---|---|---|---|---|
-| Claude Opus 5.5 | 96.5% | 96.5% | 0.3% | 2.0% | 592 |
-| Claude Sonnet 4.6 | 93.0% | 93.0% | 2.7% | 4.0% | 401 |
-| Claude Sonnet 5.5 | 91.8% | 91.8% | 1.0% | 8.0% | 582 |
-| GPT-6 Luna | 84.6% | 84.6% | 7.3% | 25.0% | 564 |
-| Claude Haiku 5.5 | 83.4% | 83.4% | 3.0% | 6.0% | 501 |
-| DeepSeek V4 Pro | 83.3% | 85.9% | 5.3% | 4.0% | 582 |
-| Gemini 3.1 Flash Lite | 76.0% | 76.1% | 17.3% | 17.0% | 595 |
-| Claude Haiku 4.5 | 69.6% | 69.6% | 12.8% | 11.0% | 494 |
-| Llama 4 Maverick | 21.4% | 21.4% | 65.0% | 24.0% | 585 |
+| Model | Correct (strict) | Correct | Correct of all asked (k/n, 95% interval) | Made up | Gave a quote on a trick question | of which presented as genuine | Answered | Unfinished |
+|---|---|---|---|---|---|---|---|---|
+| Claude Opus 5.5 | 97.1% | 97.1% | 95.8% (575/600), 93.9–97.2% | 0.3% | 2.0% | 0.0% | 592 | 0 |
+| Claude Sonnet 4.6 | 93.5% | 93.5% | 62.5% (375/600), 58.6–66.3% | 2.0% | 4.0% | 1.0% | 401 | 0 |
+| Claude Sonnet 5.5 | 92.3% | 92.3% | 89.5% (537/600), 86.8–91.7% | 0.7% | 8.0% | 0.0% | 582 | 0 |
+| GPT-6 Luna | 85.6% | 85.6% | 80.5% (483/600), 77.1–83.5% | 6.6% | 25.0% | 5.0% | 564 | 0 |
+| DeepSeek V4 Pro | 84.3% | 86.9% | 84.3% (506/600), 81.2–87.0% | 5.3% | 4.0% | 3.0% | 582 | 18 |
+| Claude Haiku 5.5 | 84.0% | 84.0% | 70.2% (421/600), 66.4–73.7% | 2.6% | 6.0% | 4.0% | 501 | 0 |
+| Gemini 3.1 Flash Lite | 77.1% | 77.1% | 76.6% (459/599), 73.1–79.8% | 16.8% | 17.0% | 15.0% | 595 | 0 |
+| Claude Haiku 4.5 | 69.6% | 69.6% | 57.3% (344/600), 53.3–61.2% | 12.1% | 11.0% | 11.0% | 494 | 0 |
+| Llama 4 Maverick | 21.4% | 21.4% | 20.8% (125/600), 17.8–24.3% | 63.8% | 24.0% | 24.0% | 585 | 0 |
 
-Plain prompt; shares of answered questions that have a real answer. Ranked by *Correct (strict)*, which also counts answers the model never finished (it reasoned past the token limit) as wrong; *Correct* leaves those out. Generated 2026-10-28 from `results/summary.json`; 95% intervals and all breakdowns are in that file and on the leaderboard.
+Plain prompt; questions that have a real answer. Ranked by *Correct (strict)*: share of *Answered* + *Unfinished*, where an unfinished answer (no readable answer, nearly always because the model was still reasoning at the token limit) counts as wrong. *Correct* and *Made up* are shares of *Answered* only. Questions the model declined are in neither. *Correct of all asked*: correct answers as a share of all questions with a real answer, so declining counts as not correct. *Gave a quote on a trick question*: any quote although there is none to give; always a failure. *Of which presented as genuine*: without the answers that say themselves that the line is not from the named text, or is from another work (found by a word rule). Both are shares of all trick questions, n = 99–100 per model. Answers that the model's host ended with an error are in no rate: Gemini 3.1 Flash Lite 1 plain, 1 cautious. Generated 2026-11-24 from `results/summary.json`; 95% intervals and all breakdowns are in that file and on the leaderboard.
 <!-- results:end -->
+
+### Run-to-run stability
+
+<!-- stability:start -->
+| Model | Same label in all 4 runs | 95% interval |
+|---|---|---|
+| Claude Opus 5.5 | 97.1% (68/70) | 90.2–99.2% |
+| Claude Sonnet 4.6 | 90.0% (63/70) | 80.8–95.1% |
+| Claude Sonnet 5.5 | 91.4% (64/70) | 82.5–96.0% |
+| GPT-6 Luna | 87.1% (61/70) | 77.3–93.1% |
+| DeepSeek V4 Pro | 82.9% (58/70) | 72.4–89.9% |
+| Claude Haiku 5.5 | 87.1% (61/70) | 77.3–93.1% |
+| Gemini 3.1 Flash Lite | 100.0% (70/70) | 94.8–100.0% |
+| Claude Haiku 4.5 | 100.0% (70/70) | 94.8–100.0% |
+| Llama 4 Maverick | 67.1% (47/70) | 55.5–77.0% |
+
+Share of the repeated questions (fixed sample, plain prompt, all question types including trick questions) that got the same scorer label (exact, altered, made up, declined, …) in all four runs. It measures consistency, not correctness: the same wrong label four times counts as stable, and the wording may differ.
+<!-- stability:end -->
 
 ## What is in the benchmark
 
@@ -51,18 +80,23 @@ Plain prompt; shares of answered questions that have a real answer. Ranked by *C
 
 1. Model quote and source are normalised the same way: Unicode NFKC, case-folded, punctuation
    and quotation marks removed, apostrophes and in-word hyphens joined ("to-morrow" = "tomorrow"),
-   verse numbers and references stripped.
-2. **Correct** = the normalised words are identical to the requested passage. A complete quote
-   followed by extra text still counts (flagged `OVERLONG`); a correct fragment does not
-   (`incomplete`).
+   verse numbers and references stripped. Word division does not count ("any thing" = "anything").
+2. **Correct** = the normalised text is identical, letter for letter, to the requested passage. A
+   complete quote followed by extra text still counts (flagged `OVERLONG`); a correct fragment
+   does not (`incomplete`). For topic quotes, any verbatim passage of the named text counts, unless
+   the stated location is wrong; whether it fits the theme is not checked.
 3. Everything else is wrong, and is sorted by a word-level edit distance with an n-gram search
    over the whole source: *spelling only* (e.g. "choose" for the 1787 "chuse"), *altered*
-   (≥ 80% word similarity), *wrong place* (a real passage, but not the one asked for), *made up*
-   (below 80% everywhere in the source). This split is approximate.
-4. Trick questions: any quote given is a failure; declining is correct. Topic quotes: any real
-   passage counts, then the stated location is checked.
+   (≥ 80% word similarity), *wrong place* (a real passage, but not the one asked for, or the wrong
+   location), *made up* (below 80% everywhere in the named edition; matches of only a few words do
+   not count). This split is approximate.
+4. Trick questions: the right answer is to decline. Two figures are given: how often the model
+   *gave a quote*, and how often it gave one *as genuine* (some answers quote a line and say it is
+   from another work).
+5. Two accuracy figures matter together: **Correct (strict)**, the share of *attempted* questions,
+   which ranks the table, and **Correct of all asked**, which counts declining as not correct.
 
-Every rule is covered by tests in [`tests/`](tests/). Design decisions and their reasons:
+The rules are covered by tests in [`tests/`](tests/). Design decisions and their reasons:
 [`DECISIONS.md`](DECISIONS.md). Full specification: [`SPEC.md`](SPEC.md).
 
 ## Reproduce
@@ -117,18 +151,53 @@ ideally, `providers:` to pin one host), then run `quotebench run --estimate --mo
   the exact model IDs and dates recorded.
 - The split of wrong answers into kinds depends on similarity thresholds that were not
   checked against human labels.
-- Famous-passage lists, topics and trick questions were drafted with an AI assistant (Claude)
-  and reviewed by the author.
+- Famous-passage lists, topics and trick questions were drafted with an AI assistant (Claude).
+  They were checked by script where a script can check them, and by a second AI audit before
+  release; the author has **not** reviewed them line by line
+  ([`DECISIONS.md`](DECISIONS.md) D18). The code and the paper were also written with Claude,
+  and five of the nine models, including the top-ranked one, are Claude models. Readers should
+  weigh that.
 - Solo student project; not peer reviewed.
+
+## quotecheck: check the quotations in any text
+
+`quotecheck` finds the quotations in a text (for example an AI answer) and checks each one, word
+for word, against a source you give it. It uses the benchmark's scoring code and needs no network.
+
+```bash
+quotecheck --source examples/lease.txt --input examples/answer.md
+```
+
+```python
+from quotecheck import Source, check
+
+report = check(ai_output_text, Source.from_file("contract.txt", language="en"))
+for q in report.quotes:
+    print(q.label, q.similarity, q.text, q.best_match, q.source_start, q.source_end)
+```
+
+Labels: `EXACT` (every word matches; the only correct label), `MINOR` (spelling only), `ALTERED`,
+`FABRICATED`. Exit code: 0 all exact, 1 some not, 2 usage error. Unlike the benchmark, numbers are
+compared ("30 days" is not "60 days"); `--ignore-numbers` turns that off.
+
+It does not check paraphrases or quotations from texts it was not given, and it ignores symbols
+("$" and "€" count as the same). The split between `MINOR`, `ALTERED` and `FABRICATED` is
+approximate and was not checked against human labels. Details:
+[`src/quotecheck/README.md`](src/quotecheck/README.md).
 
 ## Related work
 
-The closest existing benchmark is YouVersion's
+The closest existing benchmarks are YouVersion's
 [Bible Accuracy Benchmark](https://github.com/youversion/biblelab-bibleaccuracybenchmark)
-(Bible quotation by reference, many translations, nonexistent-reference traps). QuoteBench
-differs in covering several genres, next-passage and topic tasks, misattribution traps and the
-plain / cautious / lookup comparison, with all ground truth in the repository. Notes on further
-related work: [`notes/related_work_scan.md`](notes/related_work_scan.md).
+(Bible quotation by reference, many translations, nonexistent-reference traps) and
+[BibleQuoteBench](https://github.com/x4g4p3x/BibleQuoteBench) (strict closed-book recall from
+three public-domain English Bibles). Most of QuoteBench's ingredients appear in earlier work; the
+lookup idea, for example, is close to Yeung's
+[deterministic quoting](https://mattyyeung.github.io/deterministic-quoting). What we have not
+found elsewhere is the combination: five texts from different genres, next-passage and topic
+tasks, misattribution traps, and a plain / cautious / lookup comparison (lookup on two texts
+only), with all ground truth in the repository. Full discussion in [`PAPER.md`](PAPER.md); notes
+in [`notes/`](notes/).
 
 ## Licence and citation
 
@@ -141,7 +210,7 @@ related work: [`notes/related_work_scan.md`](notes/related_work_scan.md).
   title  = {QuoteBench: How often do language models misquote famous texts?},
   author = {Maksim},
   year   = {2026},
-  note   = {Version 1.0 (in progress)},
+  note   = {Version 1.0},
   url    = {https://github.com/codebymax10/quotebench}
 }
 ```

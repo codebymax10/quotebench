@@ -1,6 +1,7 @@
 # Scoring settings (frozen for v1.0; any change means a new benchmark version).
 # Headline metric (DECISIONS D15): a quote is CORRECT only if every word matches the edition
-# letter for letter (punctuation/capitals ignored) — label EXACT without the PARTIAL flag.
+# letter for letter (punctuation, capitals and whitespace ignored, so "any thing" = "anything",
+# flag WORD_DIVISION) — label EXACT without the PARTIAL flag.
 # Everything below only shapes the approximate split of WRONG answers (spelling only = MINOR,
 # altered, wrong place, made up) and was not human-validated.
 status: frozen-v1.0
@@ -15,9 +16,17 @@ thresholds:
   #                   one changed word stays above 0.97, so long-unit texts look better.
   minor_rule: variants_only
 
-# A shorter answer that matches part of the target counts as PARTIAL only if it has at
-# least this many words; shorter fragments are scored against the whole target.
+# The fewest words that identify a passage, where the match is not word for word or is somewhere
+# else in the source (a few words always occur somewhere): for a PARTIAL answer with spelling
+# differences, for a real passage from the wrong place, and for a longer answer around a changed
+# target (NEAR_TARGET).
 partial_min_words: 6
+
+# The fewest words for a part of the passage asked for: a word-for-word part of it is incomplete
+# (PARTIAL), and a part with changed words is altered (NEAR_TARGET), not made up. Lower than
+# partial_min_words because the match is with one known passage, not with any place in the source;
+# one to three words are still too few to tell from chance.
+fragment_min_words: 4
 
 # Spelling variants. A different word counts as a variant (cost `cost` instead of 1, and not
 # a "word change" for the MINOR rule) if:

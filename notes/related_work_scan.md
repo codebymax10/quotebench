@@ -1,5 +1,10 @@
 # Related-work scan (2026-10-11)
 
+> **Superseded for citation.** The works were re-opened on 2026-11-24; corrections to this scan and
+> newly found works (notably BibleQuoteBench) are in
+> [`related_work_check_2026-11-24.md`](related_work_check_2026-11-24.md). `PAPER.md` cites from that
+> check. The text below is kept as it was written.
+
 Working notes for PAPER.md §Related work. Every item was opened (abstract at minimum; for most,
 method section / README / code) by a research subagent on 2026-10-11. Items marked ✔ were
 additionally re-opened and checked by hand in the main session. Before citing anything in the

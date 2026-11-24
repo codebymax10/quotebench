@@ -61,7 +61,7 @@ def run(
     retry_errors: bool = typer.Option(False, help="Retry calls that previously ended in ERROR."),
     concurrency: Optional[int] = typer.Option(None, help="Parallel requests per model (default: config)."),
 ):
-    """Query models through OpenRouter. Cached: re-running resumes and never pays twice."""
+    """Query models (Anthropic API / OpenRouter). Cached: re-running resumes and never pays twice."""
     import asyncio
 
     from . import runner as R

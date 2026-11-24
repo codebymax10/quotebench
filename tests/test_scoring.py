@@ -6,8 +6,8 @@ import pytest
 
 from quotebench.scoring import (
     ABSTAINED, ALTERED, CORRECT_REFUSAL, ERROR, EXACT, FABRICATED, MINOR, TRAP_FABRICATED,
-    UNPARSEABLE, WRONG_PLACE, ScoringConfig, SourceIndex, clean_quote, load_index, normalize,
-    parse_response, score_answer, score_free, score_targeted, tokenize,
+    UNPARSEABLE, WRONG_PLACE, ScoringConfig, SourceIndex, clean_quote, letter_spans, load_index, normalize,
+    parse_response, score_answer, score_anywhere, score_free, score_lookup, score_targeted, tokenize,
 )
 
 JOHN_3_16 = (
@@ -327,3 +327,171 @@ def test_parse_two_fenced_answers_takes_the_first():
     p = parse_response(raw)
     assert p.ok and p.quote == "first answer" and p.n_objects == 2
     assert parse_response('{"quote": "x", "cannot_quote": false}').n_objects == 1
+
+
+# --- word division: letter for letter, whatever the spaces (D15) ---------------------------
+
+PLAIN = ["How much sooner one tires of anything than of a book!", "The Vice-President shall be well bred.",
+         "There is method in't, and no doubt of it at all."]
+
+
+def plain(quote, target):
+    return score_targeted(toks(quote), SourceIndex(PLAIN), [target])
+
+
+@pytest.mark.parametrize("quote, target", [
+    ("How much sooner one tires of any thing than of a book!", 0),
+    ("The Vice President shall be well-bred.", 1),
+    ("There is method in 't, and no doubt of it at all.", 2),
+    ("Howmuch sooner onetires of anything than of a book", 0),
+])
+def test_word_division_does_not_matter(quote, target):
+    s = plain(quote, target)
+    assert (s.label, s.flags, s.similarity) == (EXACT, ["WORD_DIVISION"], 1.0)
+
+
+def test_word_division_flag_only_where_it_is_needed():
+    assert plain("How much sooner one tires of anything than of a book", 0).flags == []
+
+
+@pytest.mark.parametrize("quote", [
+    "How much sooner one tires of any things than of a book!",  # another letter
+    "How much sooner one tires of an thing than of a book!",  # a letter missing
+    "How much sooner one tires of thing any than of a book!",  # another order
+])
+def test_word_division_is_not_a_licence_to_change_letters(quote):
+    assert plain(quote, 0).label == ALTERED
+
+
+def test_a_quote_may_not_start_or_end_inside_a_word():
+    source = ["He saw anything there is to see in the wide world, and more besides."]
+    index = SourceIndex(source)
+    for cut in ("thing there is to see in the wide", "saw anything there is to see in the wide wor"):
+        s = score_targeted(toks(cut), index, [0])
+        assert not (s.label == EXACT), cut
+        assert score_anywhere(toks(cut), index)[0].label != EXACT
+    assert letter_spans(["thing"], ["anything"]) == []
+    assert letter_spans(["any", "thing"], ["of", "anything", "any", "thing"]) == [(1, 2), (2, 4)]
+    # the passage must also be whole words of the answer
+    s = score_targeted(toks("xHe saw anything there is to see in the wide world, and more besides."), index, [0])
+    assert s.label != EXACT
+
+
+def test_word_division_in_overlong_and_incomplete_answers():
+    s = plain("How much sooner one tires of any thing than of a book! The Vice-President", 0)
+    assert s.label == EXACT and s.flags == ["OVERLONG", "WORD_DIVISION"]
+    s = plain("one tires of any thing than of a book", 0)
+    assert s.label == EXACT and s.flags == ["PARTIAL", "WORD_DIVISION"]  # incomplete, so wrong
+    s = plain("There is method in 't, and no doubt of it at all.", 0)
+    assert s.label == WRONG_PLACE and s.flags == ["WORD_DIVISION"]
+
+
+def test_word_division_in_topic_quotes_and_trick_questions():
+    topic = {"text_id": "pride_prejudice", "task": "topic", "should_abstain": False}
+    r = score_answer(topic, answer("How much sooner one tires of any thing than of a book!", "Chapter 11"))
+    assert r["label"] == EXACT and r["flags"] == ["WORD_DIVISION"] and r["location_correct"] is True
+    r = score_answer(topic, answer("How much sooner one tires of any thing than of a book!", "Chapter 12"))
+    assert r["label"] == WRONG_PLACE and r["quote_label"] == EXACT
+    trap = {"text_id": "pride_prejudice", "task": "trap", "should_abstain": True}
+    r = score_answer(trap, answer("How much sooner one tires of any thing than of a book!", "Chapter 62"))
+    assert r["label"] == TRAP_FABRICATED and r["quote_label"] == EXACT
+
+
+def test_free_search_itself_still_compares_words():
+    """quotecheck writes numbers as words there, where "1 2" is not "12"."""
+    index = SourceIndex(["he found a 𐘀𐘁 b c d e"])
+    q = ["he", "found", "a", "𐘀", "𐘁", "b", "c", "d", "e"]
+    assert score_free(q, index).label != EXACT and score_anywhere(q, index)[0].label == EXACT
+
+
+# --- a passage that stands in several places ------------------------------------------------
+
+
+def test_location_may_name_any_place_where_the_passage_stands(kjv):
+    q = {"text_id": "bible_kjv", "task": "topic", "should_abstain": False}
+    quote = "O give thanks unto the LORD; for he is good: for his mercy endureth for ever."
+    for place in ("Psalm 136:1", "1 Chronicles 16:34", "Psalm 118:29", "Psalm 118:1"):
+        r = score_answer(q, answer(quote, place))
+        if place != "Psalm 118:1":  # there: "because his mercy endureth for ever"
+            assert (r["label"], r["location_correct"]) == (EXACT, True), place
+            assert r["match_units"] and r["match_text"]
+        else:
+            assert (r["label"], r["location_correct"]) == (WRONG_PLACE, False)
+    assert score_answer(q, answer(quote, "Psalm 23:1"))["label"] == WRONG_PLACE
+
+
+def test_another_play_is_not_one_of_the_places():
+    quote = "Sleep no more!"  # Macbeth 2.2, and across two lines of Hamlet 3.1 ("to sleep / No more")
+    q = {"text_id": "shakespeare", "task": "topic", "should_abstain": False, "play": "Macbeth"}
+    r = score_answer(q, answer(quote, "Act 2, Scene 2"))
+    assert (r["label"], r["location_correct"], r["match_text"]) == (EXACT, True, "Sleep no more")
+    assert score_answer({**q, "play": "Romeo and Juliet"}, answer(quote, "Act 2, Scene 2"))["label"] == WRONG_PLACE
+
+
+def test_amendment_without_section_numbers_in_topic_and_lookup():
+    quote = ("The right of citizens of the United States to vote shall not be denied or abridged by the United States "
+             "or by any State on account of sex.")
+    q = {"text_id": "us_constitution", "task": "topic", "should_abstain": False, "target_units": []}
+    assert score_answer(q, answer(quote, "Amendment XIX, Section 1"))["label"] == EXACT
+    assert score_answer(q, answer(quote, "Amendment XIX, Section 2"))["label"] == WRONG_PLACE
+    look = lambda loc: score_lookup(q, json.dumps({"location": loc, "cannot_locate": False}))["label"]  # noqa: E731
+    assert look("Amendment XIX, Section 1") == EXACT and look("Amendment XIX, Section 3") == FABRICATED
+
+
+# --- real text is not "made up" -------------------------------------------------------------
+
+LONG = ["All Bills for raising Revenue shall originate in the House of Representatives; but the Senate may propose or "
+        "concur with Amendments as on other Bills.",
+        "Every Bill which shall have passed the House shall be presented to the President."]
+
+
+def against_long(quote):
+    return score_targeted(toks(quote), SourceIndex(LONG), [0])
+
+
+def test_short_verbatim_part_is_incomplete_not_made_up():
+    s = against_long("concur with Amendments as")  # 4 words, the minimum
+    assert s.label == EXACT and s.flags == ["PARTIAL"]
+    s = against_long("raising Revenue shall originate in")
+    assert s.label == EXACT and s.flags == ["PARTIAL"]
+    assert against_long("with Amendments as").label == FABRICATED  # 3 words prove nothing
+
+
+def test_changed_part_of_the_passage_is_altered_not_made_up():
+    s = against_long("All Bills for raising Revenue shall begin in the House of Representatives")
+    assert s.label == ALTERED and s.flags == ["NEAR_TARGET"] and s.similarity > 0.9 and s.target_similarity < 0.8
+
+
+def test_longer_answer_around_a_changed_passage_is_altered_not_made_up():
+    s = against_long("All Bills for raising Revenue shall originate in the House of Representatives; but the Senate may "
+                     "propose or concur with Amendments as in other cases, and no such law shall ever be made without "
+                     "the consent of each of them in writing.")
+    assert s.label == ALTERED and s.flags == ["NEAR_TARGET"]
+
+
+def test_invented_and_paraphrased_text_is_still_made_up():
+    s = against_long("All money laws must start in the House of Representatives, though the Senate can suggest changes.")
+    assert s.label == FABRICATED
+    assert against_long("No Senator shall propose a tax upon the windows of the poor.").label == FABRICATED
+
+
+def test_fragment_minimum_is_configurable():
+    cfg = ScoringConfig(fragment_min_words=3)
+    assert score_targeted(toks("with Amendments as"), SourceIndex(LONG, cfg), [0]).label == EXACT
+    assert ScoringConfig.load().fragment_min_words == 4 < ScoringConfig.load().partial_min_words == 6
+
+
+# --- trick questions: SOURCE_CORRECTED ------------------------------------------------------
+
+
+def test_trick_answer_that_corrects_the_source_is_flagged_but_still_a_failure():
+    trap = {"text_id": "shakespeare", "task": "trap", "should_abstain": True, "play": "Macbeth"}
+    quote = "Friends, Romans, countrymen, lend me your ears;"
+    r = score_answer(trap, answer(quote, "Not in Macbeth; Julius Caesar, Act 3"))
+    assert r["label"] == TRAP_FABRICATED and "SOURCE_CORRECTED" in r["flags"]
+    r = score_answer(trap, answer(quote, "Act 3, Scene 2"))
+    assert r["label"] == TRAP_FABRICATED and "SOURCE_CORRECTED" not in r["flags"]
+    # only for trick questions, and not when the model declined
+    assert score_answer(trap, answer(quote, "Not in Macbeth", True))["label"] == CORRECT_REFUSAL
+    topic = {**trap, "task": "topic", "should_abstain": False}
+    assert "SOURCE_CORRECTED" not in score_answer(topic, answer("Out, out, brief candle!", "Not in Macbeth"))["flags"]

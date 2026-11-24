@@ -16,6 +16,11 @@ Pipeline for one quote:
 4. ``SourceIndex.search`` finds the best-matching span anywhere in a source using an n-gram
    index to pick candidate positions, then aligns the quote against each candidate.
 5. ``label`` maps similarity to EXACT / MINOR / ALTERED / FABRICATED with two thresholds.
+
+A quote is verbatim when its letters, run together, are the letters of the text run together
+(D15: letter for letter, whitespace and hyphens ignored), so "any thing" quotes "anything". The
+passage must still start and end at a word boundary (``letter_spans``). Where only the division
+into words differs, the answer carries the flag WORD_DIVISION.
 """
 
 from __future__ import annotations
@@ -24,6 +29,7 @@ import json
 import re
 import unicodedata
 from array import array
+from bisect import bisect_left
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -51,6 +57,7 @@ class ScoringConfig:
     lower: float = 0.80
     minor_rule: str = "variants_only"  # or "similarity" (SPEC §8 literal: sim >= upper)
     partial_min_words: int = 6
+    fragment_min_words: int = 4
     variant_char_similarity: float = 0.80
     variant_min_length: int = 4
     variant_cost: float = 0.25
@@ -72,6 +79,7 @@ class ScoringConfig:
             lower=raw["thresholds"]["lower"],
             minor_rule=raw["thresholds"].get("minor_rule", "variants_only"),
             partial_min_words=raw["partial_min_words"],
+            fragment_min_words=raw.get("fragment_min_words", cls.fragment_min_words),
             variant_char_similarity=raw["variants"]["char_similarity"],
             variant_min_length=raw["variants"]["min_length"],
             variant_cost=raw["variants"]["cost"],
@@ -259,6 +267,41 @@ class Aligner:
 # Source index and search
 
 
+class _Letters:
+    """The letters of a run of words without the spaces, and where each word starts."""
+
+    def __init__(self, words: Sequence[str]):
+        self.text = "".join(words)
+        self.bounds = array("l", [0])
+        for w in words:
+            self.bounds.append(self.bounds[-1] + len(w))
+
+    def _word_at(self, offset: int) -> int | None:
+        """The number of the word boundary at a letter offset; None inside a word."""
+        i = bisect_left(self.bounds, offset)
+        return i if i < len(self.bounds) and self.bounds[i] == offset else None
+
+    def spans(self, needle: str) -> list[tuple[int, int]]:
+        """Every run of whole words whose letters are exactly ``needle``."""
+        out = []
+        at = self.text.find(needle) if needle else -1
+        while at != -1:
+            start, end = self._word_at(at), self._word_at(at + len(needle))
+            if start is not None and end is not None:
+                out.append((start, end))
+            at = self.text.find(needle, at + 1)
+        return out
+
+
+def letter_spans(needle: Sequence[str], haystack: Sequence[str]) -> list[tuple[int, int]]:
+    """Every span of whole words of ``haystack`` with the same letters, in order, as ``needle``.
+
+    Where the words are divided is ignored ("any thing" = "anything", "in ’t" = "in't"), but a
+    span never starts or ends inside a word ("thing" is not found in "anything").
+    """
+    return _Letters(haystack).spans("".join(needle))
+
+
 @dataclass
 class Match:
     similarity: float
@@ -300,6 +343,7 @@ class SourceIndex:
             self.unit_span.append((first, len(self.tokens)))
         self.aligner.vocab = set(self.tokens)
         self._postings: dict[int, dict[tuple[str, ...], list[int]]] = {}
+        self._letters: _Letters | None = None
 
     def postings(self, k: int) -> dict[tuple[str, ...], list[int]]:
         if k not in self._postings:
@@ -338,6 +382,12 @@ class SourceIndex:
         """Align ``q`` against exactly the source span [start, end)."""
         cost, _, _, hard = self.aligner.align(q, self.tokens[start:end])
         return self.make_match(cost, len(q), start, end, hard)
+
+    def occurrences(self, q: Sequence[str]) -> list[Match]:
+        """Every place where the source has ``q`` word for word (see ``letter_spans``)."""
+        if self._letters is None:
+            self._letters = _Letters(self.tokens)
+        return [self.make_match(0.0, e - s, s, e) for s, e in self._letters.spans("".join(q))]
 
     def search(self, q: Sequence[str]) -> Match | None:
         """Best-matching span for ``q`` anywhere in the source (None if no shared words)."""
@@ -424,12 +474,60 @@ def score_free(quote_tokens: Sequence[str], index: SourceIndex) -> QuoteScore:
     return QuoteScore(label_for(best.similarity, best.exact, index.cfg, best.hard_edits), best.similarity, flags, best)
 
 
+def score_anywhere(quote_tokens: Sequence[str], index: SourceIndex) -> tuple[QuoteScore, list[Match]]:
+    """``score_free`` by letters instead of words, with every place the quote occurs verbatim.
+
+    The benchmark's rule for topic quotes and trick questions. It is not in ``score_free`` because
+    ``quotecheck`` writes numbers as words there, and "1 2" must not quote "12".
+    """
+    q = list(quote_tokens)
+    score = score_free(q, index)
+    places = index.occurrences(q)
+    if places and score.label != EXACT:
+        score = QuoteScore(EXACT, 1.0, score.flags + _word_division(q, index, places[0]), places[0])
+    return score, places
+
+
+def _word_division(q: Sequence[str], index: SourceIndex, m: Match) -> list[str]:
+    return ["WORD_DIVISION"] if list(q) != index.tokens[m.start : m.end] else []
+
+
+def _verbatim(q: list[str], index: SourceIndex, t0: int, t1: int) -> QuoteScore | None:
+    """EXACT if ``q`` is the target, contains it (OVERLONG) or is a part of it (PARTIAL), by letters."""
+    cfg, target = index.cfg, index.tokens[t0:t1]
+
+    def exact(part: list[str], start: int, end: int, flags: list[str]) -> QuoteScore:
+        m = index.make_match(0.0, end - start, start, end)
+        return QuoteScore(EXACT, 1.0, flags + _word_division(part, index, m), m, target_similarity=1.0)
+
+    inside = letter_spans(target, q)  # the whole target, in the quote
+    if inside:
+        q0, q1 = inside[0]
+        if (q0, q1) == (0, len(q)):
+            return exact(q, t0, t1, [])
+        score = exact(q[q0:q1], t0, t1, ["OVERLONG"])
+        for part in (q[:q0], q[q1:]):
+            if len(part) >= cfg.partial_min_words:
+                m = index.search(part)
+                if m is None or m.similarity < cfg.lower:
+                    score.flags.append("OVERLONG_EXTRA_UNMATCHED")
+                    break
+        return score
+    part_of = letter_spans(q, target)  # the whole quote, in the target
+    if part_of and min(len(q), part_of[0][1] - part_of[0][0]) >= cfg.fragment_min_words:
+        return exact(q, t0 + part_of[0][0], t0 + part_of[0][1], ["PARTIAL"])
+    return None
+
+
 def score_targeted(quote_tokens: Sequence[str], index: SourceIndex, target_units: Sequence[int]) -> QuoteScore:
     """Score a quote that should reproduce specific source units (Tasks 1 and 2).
 
     Compared against the target, allowing for an OVERLONG answer (target embedded in a longer
-    quote) or a PARTIAL one (a correct fragment of at least ``partial_min_words`` words). Also
-    searched against the whole source, so a real passage from the wrong place is WRONG_PLACE.
+    quote) or a PARTIAL one (a fragment: ``fragment_min_words`` words if it is verbatim,
+    ``partial_min_words`` otherwise). Also searched against the whole source, so a real passage
+    from the wrong place is WRONG_PLACE, and nothing that is close to some passage of the source
+    is FABRICATED (NEAR_TARGET: a changed part or a changed, longer version of the target;
+    OTHER_PASSAGE: a changed passage from elsewhere).
     """
     cfg, al = index.cfg, index.aligner
     q = list(quote_tokens)
@@ -439,18 +537,22 @@ def score_targeted(quote_tokens: Sequence[str], index: SourceIndex, target_units
     target = index.tokens[t0:t1]
     flags: list[str] = []
 
+    verbatim = _verbatim(q, index, t0, t1)
+    if verbatim is not None:
+        return verbatim
+
     cost, _, _, hard = al.align(q, target)
     sim = al.similarity(cost, n, len(target))
     match = index.make_match(cost, n, t0, t1, hard)
-    exact = cost == 0 and n == len(target)
+    near: list[tuple[float, Match]] = []  # similarity of a part of the quote or of the target
 
     if n > len(target):
         # Target inside a longer quote: align the target against the best substring of q.
         c2, q0, q1, h2 = al.align(target, q, free_ends=True)
         s2 = al.similarity(c2, len(target), q1 - q0)
+        longer = index.make_match(c2, q1 - q0, t0, t1, h2)
         if s2 > sim and s2 >= cfg.upper:
-            sim, exact, hard = s2, c2 == 0, h2
-            match = index.make_match(c2, q1 - q0, t0, t1, h2)
+            sim, hard, match = s2, h2, longer
             flags.append("OVERLONG")
             extra = [part for part in (q[:q0], q[q1:]) if len(part) >= cfg.partial_min_words]
             for part in extra:
@@ -458,29 +560,41 @@ def score_targeted(quote_tokens: Sequence[str], index: SourceIndex, target_units
                 if m is None or m.similarity < cfg.lower:
                     flags.append("OVERLONG_EXTRA_UNMATCHED")
                     break
-    elif n < len(target) and n >= cfg.partial_min_words:
+        elif min(len(target), q1 - q0) >= cfg.partial_min_words:
+            near.append((s2, longer))
+    elif n < len(target):
         c3, s0, s1, h3 = al.align(q, target, free_ends=True)
         s3 = al.similarity(c3, n, s1 - s0)
-        if s3 > sim and s3 >= cfg.upper:
-            sim, exact, hard = s3, c3 == 0 and s1 - s0 == n, h3
-            match = index.make_match(c3, n, t0 + s0, t0 + s1, h3)
+        part = index.make_match(c3, n, t0 + s0, t0 + s1, h3)
+        if s3 > sim and s3 >= cfg.upper and n >= cfg.partial_min_words:
+            sim, hard, match = s3, h3, part
             flags.append("PARTIAL")
+        elif min(n, s1 - s0) >= cfg.fragment_min_words:
+            near.append((s3, part))
 
-    result = QuoteScore(label_for(sim, exact, cfg, hard), sim, flags, match, target_similarity=sim)
-    if result.label == EXACT:
-        return result
+    result = QuoteScore(label_for(sim, False, cfg, hard), sim, flags, match, target_similarity=sim)
 
     # Is it a better match for some other place in the source?
     best = index.search(q)
     if best is not None and not (best.end <= t0 or best.start >= t1):
-        best = None  # overlaps the target: nothing new
+        if min(n, best.end - best.start) >= cfg.fragment_min_words:
+            near.append((best.similarity, best))
+        best = None  # overlaps the target: not another place
+    if best is None or not best.exact:
+        # word for word somewhere else, apart from the division into words
+        best = next((m for m in index.occurrences(q) if m.end <= t0 or m.start >= t1), best)
     if best is not None and not index.substantial(best):
         best = None  # a few words that happen to occur inside some other passage
     if best is not None and label_for(best.similarity, best.exact, cfg, best.hard_edits) in (EXACT, MINOR) \
             and best.similarity > sim:
+        flags += _word_division(q, index, best) if best.exact else []
         return QuoteScore(WRONG_PLACE, best.similarity, flags, best, target_similarity=sim)
     if result.label == FABRICATED and best is not None and best.similarity >= cfg.lower:
         return QuoteScore(ALTERED, best.similarity, flags + ["OTHER_PASSAGE"], best, target_similarity=sim)
+    if result.label == FABRICATED and near:
+        s, m = max(near, key=lambda x: x[0])
+        if s >= cfg.lower:
+            return QuoteScore(ALTERED, s, flags + ["NEAR_TARGET"], m, target_similarity=sim)
     if result.label == FABRICATED and target_recall(q, target) >= 0.5:
         # Not verbatim, but built from the target's words: typically another translation or
         # a paraphrase of the right passage rather than invented text. Kept FABRICATED per
@@ -630,7 +744,7 @@ def score_answer(question: dict, raw_response: str | None, error: str | None = N
     ``question`` needs ``text_id``, ``task`` and ``should_abstain``; Tasks 1–2 also need
     ``target_units`` (unit idx values of the ground-truth passage).
     """
-    from .locations import location_correct
+    from .locations import location_correct, says_other_source
 
     out = {"label": None, "similarity": None, "target_similarity": None, "flags": [],
            "match_units": [], "match_text": "", "quote_label": None, "location_correct": None,
@@ -655,9 +769,11 @@ def score_answer(question: dict, raw_response: str | None, error: str | None = N
     if question["should_abstain"]:
         if not gave_quote:
             return {**out, "label": CORRECT_REFUSAL}
-        s = score_free(tokens, index)
-        return {**out, **s.to_dict(), "label": TRAP_FABRICATED, "quote_label": s.label,
-                "flags": out["flags"] + s.flags}
+        s, _ = score_anywhere(tokens, index)
+        flags = out["flags"] + s.flags
+        if says_other_source(question["text_id"], question.get("play"), parsed.location, parsed.quote):
+            flags.append("SOURCE_CORRECTED")  # still a failure, but not presented as from the named text
+        return {**out, **s.to_dict(), "label": TRAP_FABRICATED, "quote_label": s.label, "flags": flags}
 
     if not gave_quote:
         return {**out, "label": ABSTAINED}
@@ -666,15 +782,24 @@ def score_answer(question: dict, raw_response: str | None, error: str | None = N
         s = score_targeted(tokens, index, question["target_units"])
         return {**out, **s.to_dict(), "quote_label": s.label, "flags": out["flags"] + s.flags}
 
-    # topic: any real passage counts; then check the stated location
-    s = score_free(tokens, index)
+    # topic: any real passage counts; then check the stated location, which is right if the
+    # passage stands there at all, however many other places have it word for word
+    s, places = score_anywhere(tokens, index)
     res = {**out, **s.to_dict(), "quote_label": s.label, "flags": out["flags"] + s.flags}
     if s.match is not None and s.label in (EXACT, MINOR, ALTERED):
         titles = {u["chapter"]: u.get("chapter_title", "") for u in units if "chapter" in u}
         kw = {"chapter_titles": titles} if question["text_id"] in ("pride_prejudice", "origin_species") else {}
-        res["location_correct"] = location_correct(
-            question["text_id"], parsed.location, [units[i] for i in s.match.units], **kw
-        )
+
+        def stands_there(m: Match) -> bool | None:
+            return location_correct(question["text_id"], parsed.location, [units[i] for i in m.units], **kw)
+
+        res["location_correct"] = stands_there(s.match)
+        if res["location_correct"] is False:
+            play = question.get("play")  # a passage of another play is not from the play asked for
+            there = next((m for m in places if stands_there(m)
+                          and (not play or all(units[i].get("play") == play for i in m.units))), None)
+            if there is not None:
+                res.update(location_correct=True, match_units=there.units, match_text=there.text)
         if s.label in (EXACT, MINOR) and res["location_correct"] is False:
             res["label"] = WRONG_PLACE
     return res

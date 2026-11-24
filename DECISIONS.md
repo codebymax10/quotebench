@@ -25,6 +25,11 @@ verse quotation by reference with nonexistent-reference traps — but for the Bi
 hallucination benchmark. YouVersion is cited prominently; the Bible slice is one genre among five.
 **Why:** the cross-genre design, continuation/topic tasks, misattribution traps and the
 baseline/cautious/lookup comparison are not covered by existing work (see notes/related_work_scan.md).
+**Update (2026-11-24):** that reason claimed too much. A second check found BibleQuoteBench (strict
+closed-book recall from three public-domain Bibles, first commit 2026-09-04), earlier next-verse
+tests (Kaiser 2024) and earlier lookup designs (Yeung 2024). The parts exist elsewhere; what we did
+not find elsewhere is the combination. README and PAPER say so. The decision itself is unchanged.
+See notes/related_work_check_2026-11-24.md.
 
 ## D5 — English only for v1 (2026-10-11)
 **Decision:** drop the three Russian texts (`bible_synodal`, `onegin`, `crime_punishment`) from
@@ -46,7 +51,7 @@ so Maksim can review and change them.
 drafted by an AI model (Claude), which could make them systematically easier or harder for
 some model families.
 
-## D7 — Test set v1.0 design (2026-10-11, drafted by Claude Code under D6; Maksim to review)
+## D7 — Test set v1.0 design (2026-10-11, drafted by Claude Code under D6; not reviewed line by line, see D18)
 **Composition (700 questions, seed 20261011):**
 - Task 1 reference (200): KJV 50 famous + 100 random; Constitution 15 famous + 35 random.
 - Task 2 continuation (250): 5 texts × (15 famous + 35 random).
@@ -215,3 +220,51 @@ declined 33 % of real questions ("cannot quote"), so its rate rests on 401 answe
 declined 1 %, Sonnet 5.5 3 %.
 **Cost:** $14.49 (Opus 5.5 $11.06, Sonnet 4.6 $2.21, Haiku 4.5 $0.94, archived answers $0.28);
 project total $31.83.
+
+## D18 — What v1.0 contains, and release (2026-11-24)
+**Decisions (Maksim):**
+1. **Models:** v1.0 is released with the 9 models already run. The six further models planned in
+   D17 (GPT-6.1 Sol, Grok 4.7, Mistral Large 4, Qwen 3.8 Flash, Llama 3.1 8B, Ministral 3B) are
+   left for a later version. Five of the nine models are Anthropic's; this stays a stated limitation.
+2. **Write-up:** Maksim asked Claude Code to draft all of `PAPER.md` and the headline findings,
+   including the introduction, the interpretation and the conclusion. The paper discloses this.
+   Supersedes SPEC §2 item 7 and SPEC §10 ("Maksim writes …").
+3. **Review of the AI-drafted questions:** Maksim has *not* reviewed the famous-passage lists,
+   topics and trick questions (D6, D7) line by line. Earlier README text said they were "reviewed
+   by the author"; that was wrong and has been corrected. They were checked by script where a
+   script can check them (`data/trap_verification.csv`). The `hand_checked` notes in
+   `data/handwritten/traps.csv` (D7) come from the same AI-assisted drafting, not from a review
+   by Maksim.
+4. **`quotecheck`** (SPEC §9) ships in v1.0.
+5. **Release:** push, tag `v1.0` and publish a GitHub release once all checks pass.
+
+**Budget:** the runs of D17 took project spend to $31.83, above the $25 cap of D9. No new cap was
+recorded at the time; this note records it.
+
+## D19 — Scorer corrections before release (2026-11-24)
+**Finding:** a pre-release audit (Claude subagents; every ground truth against the raw files, all
+traps, all near-miss and wrong-place answers, and a sample of the rest) found scorer errors. Items
+1–4 and 6 make the code follow SPEC or D15 as written; item 5 changes only how wrong answers are
+sorted. The rules use no question ids or model names.
+1. *Chapter and volume:* "Chapter 56 (Volume III, Chapter 14)" had the volume offset added twice.
+   A location must now fit exactly one real chapter; contradictory numbers are wrong.
+2. *Constitution text printed without sections* (e.g. the 19th Amendment): "Section N" is read as
+   paragraph N and nothing else.
+3. *Passages that occur more than once:* the stated location may be any verbatim occurrence.
+4. *Word division* (D15: whitespace and punctuation are ignored): "anything" / "any thing",
+   "Vice-President" / "Vice President" are no longer wrong. Flag `WORD_DIVISION`.
+5. *Made up:* a verbatim fragment of the passage of at least 4 words (`fragment_min_words`,
+   previously 6) is *incomplete*; a near-verbatim answer (≥ 0.80) is *altered*. No effect on
+   correctness.
+6. *Host errors* (finish reason "error"; 2 Gemini answers) are ERROR and excluded (SPEC §6).
+**Added metrics:** (a) trick questions are split: any quote given (unchanged) and quote *presented
+as genuine*, because 38 of 101 plain-prompt trap "failures" themselves say that the line is from
+another work (flag `SOURCE_CORRECTED`; the rule was written after reading these answers);
+(b) *Correct of all asked*, which counts declining as not correct, because declining ranges from
+0 % to 33 %. The ranking stays *Correct (strict)* (D16).
+**Effect (plain prompt, strict):** Opus 5.5 96.5 → 97.1 %, Sonnet 4.6 93.0 → 93.5, Sonnet 5.5
+91.8 → 92.3, GPT-6 Luna 84.6 → 85.6, DeepSeek 83.3 → 84.3, Haiku 5.5 83.4 → 84.0, Gemini 76.0 →
+77.1; Haiku 4.5 and Llama unchanged. DeepSeek passes Haiku 5.5 (well inside the intervals).
+Lookup errors 5 → 1 of 2,300. 168 of 17,280 rows changed (123 labels); no answer went from correct
+to wrong.
+**Caveat:** found, fixed and checked with Claude models, which are also under test.

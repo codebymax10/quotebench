@@ -3,6 +3,10 @@
 **For:** Claude Code, working with Maksim (the author and decision-maker).
 **Goal:** a public, reproducible benchmark that measures how often AI language models fabricate or alter quotations from well-known texts, in English and Russian, plus a small open-source tool that checks quotations against a source.
 
+> **Note (v1.0):** this is the original plan. v1.0 differs from it in several places (English only,
+> no human validation step, other token limit, nine models, AI-drafted questions and paper). Where
+> they differ, [`DECISIONS.md`](DECISIONS.md) is right.
+
 Read this whole file before writing any code. Build in the milestone order in section 13. At every point marked **ASK MAKSIM**, stop and get his decision; do not choose for him.
 
 ---

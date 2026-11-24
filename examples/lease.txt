@@ -1,0 +1,21 @@
+RESIDENTIAL LEASE - 14 HARROW LANE
+(A fictional document, written for the quotecheck example. No real lease is quoted.)
+
+1. Rent
+The Tenant shall pay the Landlord a monthly rent of $1,450, due on the first day of each
+month. Rent received after the fifth day of the month is late, and the Landlord may add a
+late fee of $40.
+
+2. Deposit
+The Tenant has paid a deposit of $1,450. The Landlord shall return the deposit within 30 days
+after the Tenant has moved out, less the cost of any damage beyond ordinary wear and tear,
+and shall give the Tenant a written list of every deduction.
+
+3. Entry
+The Landlord may enter the apartment to make repairs, but only between nine in the morning
+and six in the evening, and only after giving the Tenant at least 24 hours' written notice.
+No notice is needed in an emergency.
+
+4. Pets
+The Tenant may keep one cat or one small dog. The Tenant shall pay for any damage the animal
+causes to the floors, doors or garden.
