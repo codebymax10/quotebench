@@ -32,6 +32,6 @@ settings:
   max_tokens: 16000    # SPEC said 400; 2,000 (D11) still cut off thinking models (D16)
   # reasoning: not sent, so every model runs at its default reasoning setting (SPEC §6);
   # reasoning tokens used are recorded per call.
-  concurrency: 100      # parallel requests per model (thinking models take 10-30 s per answer; no rate limits seen)
+  concurrency: 100      # parallel requests per model (thinking models take 10-30 s per answer; D17 hit a limit at 3 models × 40)
   max_attempts: 6       # retries on rate limits / server errors, with exponential backoff
   timeout_seconds: 900  # long thinking at 16,000 tokens can take minutes

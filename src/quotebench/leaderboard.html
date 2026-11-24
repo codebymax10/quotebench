@@ -125,7 +125,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
     <ul>
       <li><strong>Written with Claude.</strong> The questions were drafted with Claude, an AI model, and were not reviewed line by line by the author. The code and the paper were written with Claude too.</li>
       <li><strong>Claude models are also under test:</strong> <span id="nclaude"></span>.</li>
-      <li><strong>The scorer was corrected after the results were seen</strong> (<a href="https://github.com/codebymax10/quotebench/blob/main/DECISIONS.md">DECISIONS D19</a>), with rules that are the same for all models.</li>
+      <li><strong>The scorer was corrected after the results were seen</strong> (<a href="https://github.com/codebymax10/quotebench/blob/main/DECISIONS.md">DECISIONS D19</a>), with rules that are the same for all models. The rules that decide whether an answer to a trick question corrects itself were also written by Claude after reading the answers; they bring three Claude models to 0 in the "no correction" column.</li>
       <li><strong>The split of wrong answers into kinds was not checked by humans.</strong> Right or wrong is decided mechanically, without human judgement.</li>
       <li><strong>First-day answers that finished under the earlier 2,000-token limit were kept;</strong> only answers cut off by it were asked again, at 16,000 (Llama 4 Maverick: 8,192).</li>
       <li><strong>Not peer reviewed.</strong> A solo student project.</li>

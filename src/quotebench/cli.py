@@ -187,6 +187,11 @@ def report(
 
     cache = open_cache()
     incomplete = Rep.incomplete_models(tuple(r[k] for k in Rep.CALL) for r in cache.rows())
+    failed = sum(r["status"] != "ok" for r in cache.rows())
+    if failed:
+        incomplete.append(f"{failed} calls failed (quotebench run --retry-errors asks them again)")
+    if cache.differing:
+        incomplete.append(f"{cache.differing} cached answers differ from the published ones in results/raw")
     for problem in incomplete:
         typer.echo(f"incomplete: {problem}", err=True)
     if incomplete and not draft:

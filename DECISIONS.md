@@ -261,8 +261,9 @@ sorted. The rules use no question ids or model names.
 6. *Host errors* (finish reason "error"; 2 Gemini answers) are ERROR and excluded (SPEC §6).
 **Added metrics:** (a) trick questions are split: any quote given (unchanged) and quote given
 *with no correction*, because 38 of 101 plain-prompt trap "failures" themselves say that the line is
-from another work (flag `SOURCE_CORRECTED`) and 10 say that the passage does not exist or take the
-quote back (flag `SELF_RETRACTED`; 2 do both). The rules were written after reading these answers
+from another work (flag `SOURCE_CORRECTED`) and 10 say that the passage does not exist or,
+outside the stated location, that the line is not in the named text, or add a second answer that
+declines (flag `SELF_RETRACTED`; 2 do both). The rules were written after reading these answers
 and bring three Claude models to 0;
 (b) *Correct of all asked*, which counts declining as not correct, because declining ranges from
 0 % to 33 %. The ranking stays *Correct (strict)* (D16).

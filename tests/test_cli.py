@@ -150,6 +150,19 @@ def test_report_refuses_incomplete_answers_and_writes_nothing(cache, monkeypatch
     assert "nothing was written" in r.output and r.output.count("incomplete:") == len(R.load_config()["models"])
 
 
+@pytest.mark.parametrize("problem", ["failed call", "cache differs from results/raw"])
+def test_report_refuses_failed_or_unpublished_answers(cache, monkeypatch, problem):
+    monkeypatch.setattr(Rep, "incomplete_models", lambda calls: [])
+    monkeypatch.setattr(Rep, "score_all", lambda cache: pytest.fail("must not score"))
+    if problem == "failed call":
+        cache.put({**rec(1), "status": "error", "error": "429", "request": "{}", "response": "{}"})
+    else:
+        cache.differing = 3
+    r = invoke("report")
+    assert r.exit_code == 1 and "nothing was written" in r.output
+    assert ("1 calls failed" if problem == "failed call" else "3 cached answers differ") in r.output
+
+
 def test_report_draft_is_marked_and_leaves_the_documents_alone(cache, monkeypatch):
     seen = []
     monkeypatch.setattr(Rep, "score_all", lambda c: [])
