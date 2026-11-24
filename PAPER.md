@@ -261,13 +261,9 @@ Haiku 5.5 was better than Haiku 4.5: 421 against 344 correct of 600, and 386 aga
 
 These comparisons do not isolate a model generation. The 4.x models ran at temperature 0 and, by default, do not think before answering; the 5.5 models ran at default sampling with default thinking. Mean output per call was 52 tokens for Sonnet 4.6, 292 for Sonnet 5.5, 75 for Haiku 4.5 and 366 for Haiku 5.5.
 
-### Cost
-
-All runs, including replaced answers, cost $31.83, above the original $25 cap (D18). The 1,920 final answers cost $11.06 for Opus 5.5, $7.65 for DeepSeek, $6.29 for Sonnet 5.5, $2.21 for Sonnet 4.6, $0.94 for Haiku 4.5, $0.49 for GPT-6 Luna, $0.38 for Haiku 5.5, $0.18 for Gemini and $0.15 for Llama.
-
 ## Limitations
 
-**Scope and models.** The numbers hold for five famous English texts and for the model versions, hosts and dates recorded. Only Anthropic is represented by its main and top models; OpenAI and Google appear through small ones. The larger models of other makers were left out for cost (about $30 for four, D13), yet $14.50 was later spent on three more Claude models (D17), which took the total above the cap. Because of this asymmetry, the all-Claude top three says nothing about other makers' best models. The results do not compare companies.
+**Scope and models.** The numbers hold for five famous English texts and for the model versions, hosts and dates recorded. Only Anthropic is represented by its main and top models; OpenAI and Google appear through small ones. The larger models of other makers were left out for cost (D13), yet three more Claude models were added later (D17). Because of this asymmetry, the all-Claude top three says nothing about other makers' best models. The results do not compare companies.
 
 **Selection through abstention.** The official ranking and the breakdowns leave out declined questions. An answer that sets `cannot_quote` but also gives a quotation counts as declined (20 by Haiku 4.5, 4 by other models).
 

@@ -377,7 +377,9 @@ def test_data_cannot_close_the_script_element(summary, tmp_path, monkeypatch):
     page = R.build_page(summary).read_text(encoding="utf-8")
     assert page.count("</script>") == R.PAGE_TEMPLATE.read_text(encoding="utf-8").count("</script>")
     data = re.search(r'<script type="application/json" id="data">(.*?)</script>', page, re.S)[1]
-    assert json.loads(data) == json.loads(json.dumps(summary))  # and it is still the same data
+    for m in summary["models"]:
+        del m["cost_usd"]  # not shown on the page
+    assert json.loads(data) == json.loads(json.dumps(summary))  # and otherwise it is still the same data
 
 
 def test_page_discloses_how_it_was_made(page):
@@ -394,7 +396,7 @@ def test_page_discloses_how_it_was_made(page):
 
 def test_page_shows_what_the_api_was_asked_for_and_what_answered(page):
     assert "Model ID (API)" in page and "m.api_model" in page and "m.served_models" in page
-    assert "including answers that were later replaced" in page and "Cost incl. replaced answers" in page
+    assert "cost" not in page.lower()
 
 
 def test_page_tiles_and_condition_choice(page):

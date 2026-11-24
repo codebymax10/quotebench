@@ -207,8 +207,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
       <li><strong>Not measured:</strong> hallucination in general, paraphrase, or quotation from obscure or private documents. Results hold for the exact model IDs and dates below.</li>
     </ul>
     <div class="table-wrap" role="region" aria-label="Models and run dates" tabindex="0"><table id="models" aria-label="Models and run dates"></table></div>
-    <p class="caption">Model ID: the one sent to the API. Served as: the model name the API returned with the answers. Cost: what all calls to
-      the model cost, including answers that were later replaced (cut-off answers asked again, discarded first runs).</p>
+    <p class="caption">Model ID: the one sent to the API. Served as: the model name the API returned with the answers.</p>
   </section>
 
   <footer id="foot"></footer>
@@ -258,12 +257,11 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
   banner.hidden = !banner.innerHTML;
   const finished = S.models.filter(done).length;
   const answers = S.models.reduce((a, m) => a + m.calls_done, 0);
-  const spend = S.models.reduce((a, m) => a + m.cost_usd, 0);
   const kpi = (label, value) => `<div class="kpi"><div class="label">${label}</div><div class="value">${value}</div></div>`;
   document.getElementById("kpis").innerHTML =
     kpi(...modelsTile(S.status, finished, S.models.length)) +
     kpi("Answers scored", answers.toLocaleString()) +
-    kpi("API cost", "$" + spend.toFixed(2)) +
+    kpi("Questions", S.n_questions.toLocaleString()) +
     kpi("Updated " + S.generated.slice(0, 10), S.generated.slice(11, 16) + " UTC");
 
   document.getElementById("nclaude").textContent = claudeNote(models, S.per_model);
@@ -498,8 +496,8 @@ footer { color: var(--muted); font-size: 13px; margin-top: 28px; }
   }
 
   // ---------- models + footer ----------
-  document.getElementById("models").innerHTML = "<thead><tr><th scope='col'>Model</th><th scope='col'>Model ID (API)</th><th scope='col'>Served as</th><th scope='col'>Served by</th><th scope='col'>Run</th><th scope='col'>Cost incl. replaced answers</th></tr></thead><tbody>" +
-    S.models.map(m => `<tr><th scope="row">${esc(m.label)}${m.note ? ` <span class="ci">(${esc(m.note)})</span>` : ""}</th><td><code>${esc(m.api_model)}</code></td><td><code>${esc(m.served_models.join(", ") || "–")}</code></td><td>${esc(m.api === "anthropic" ? "Anthropic API" : (m.hosts.join(", ") || "–") + " via OpenRouter")}</td><td>${esc(runDates(m.run_dates))}</td><td>$${m.cost_usd.toFixed(2)}</td></tr>`).join("") + "</tbody>";
+  document.getElementById("models").innerHTML = "<thead><tr><th scope='col'>Model</th><th scope='col'>Model ID (API)</th><th scope='col'>Served as</th><th scope='col'>Served by</th><th scope='col'>Run</th></tr></thead><tbody>" +
+    S.models.map(m => `<tr><th scope="row">${esc(m.label)}${m.note ? ` <span class="ci">(${esc(m.note)})</span>` : ""}</th><td><code>${esc(m.api_model)}</code></td><td><code>${esc(m.served_models.join(", ") || "–")}</code></td><td>${esc(m.api === "anthropic" ? "Anthropic API" : (m.hosts.join(", ") || "–") + " via OpenRouter")}</td><td>${esc(runDates(m.run_dates))}</td></tr>`).join("") + "</tbody>";
   document.getElementById("foot").innerHTML = `QuoteBench ${esc(S.version)} · generated ${esc(S.generated)} from <code>results/summary.json</code> · scoring thresholds ${esc(S.scoring.status)} · code MIT, test set CC BY 4.0 · <a href=\"https://github.com/codebymax10/quotebench\">repository</a> · <a href="https://github.com/codebymax10/quotebench/blob/main/PAPER.md">paper</a>`;
 
   function drawAll() { drawTable(); chart1(); chart2(); chart3(); chart4(); drawByText(); }

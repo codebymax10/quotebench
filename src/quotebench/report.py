@@ -494,7 +494,9 @@ PAGE_PATH = _ROOT / "docs" / "index.html"
 
 
 def build_page(summary: dict) -> Path:
-    data = json.dumps(summary, default=str).replace("</", "<\\/")
+    # the page shows no costs; they stay in summary.json
+    shown = {**summary, "models": [{k: v for k, v in m.items() if k != "cost_usd"} for m in summary["models"]]}
+    data = json.dumps(shown, default=str).replace("</", "<\\/")
     PAGE_PATH.parent.mkdir(parents=True, exist_ok=True)
     PAGE_PATH.write_text(PAGE_TEMPLATE.read_text(encoding="utf-8").replace("__SUMMARY_JSON__", data), encoding="utf-8")
     return PAGE_PATH

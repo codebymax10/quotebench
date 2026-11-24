@@ -132,8 +132,8 @@ clone `quotebench run` has nothing left to ask for the nine models. Every respon
 Add a line to [`config/models.yaml`](config/models.yaml) with the exact OpenRouter model ID (and,
 ideally, `providers:` to pin one host), then run `quotebench run --estimate --models <id>`,
 `quotebench run --models <id> --max-cost <usd>` and `quotebench report`. `--max-cost` caps *total*
-recorded spend, which already includes the $31.83 of the published runs: to spend up to $5 on a
-new model, use `--max-cost 36.83`.
+recorded spend, which already includes the published runs: `quotebench run --estimate` prints what
+is already recorded, so set the cap to that amount plus what you want to spend.
 
 ## Limitations
 

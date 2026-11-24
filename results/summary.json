@@ -1,7 +1,7 @@
 {
  "benchmark": "QuoteBench",
  "version": "v1.0",
- "generated": "2026-11-24T15:38:06+00:00",
+ "generated": "2026-11-24T15:46:41+00:00",
  "status": "released",
  "n_questions": 700,
  "expected_calls_per_model": 1920,
